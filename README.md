@@ -1,4 +1,4 @@
-<img width="561" height="701" alt="CodeMan" align="center" src="https://github.com/user-attachments/assets/8ba6a5c4-5030-4d9c-b40d-1b29bd4c1042" />
+<p align="center"><img width="561" height="701" alt="CodeMan" src="https://github.com/user-attachments/assets/8ba6a5c4-5030-4d9c-b40d-1b29bd4c1042" /></p>
 
 
 # CMPIF2120: Cliff Notes
