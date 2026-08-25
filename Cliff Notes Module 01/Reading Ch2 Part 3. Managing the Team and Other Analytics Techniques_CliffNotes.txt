@@ -1,0 +1,391 @@
+Reading, Chapter 2, Part 3: Managing the Data Science Team and Other Analytics Techniques: Study Guide
+Course: Applied Predictive Modeling (CMPINF-2120)
+Source: Provost & Fawcett, Data Science for Business, Ch. 2 pages 16-24 of the PDF
+
+================================================================
+1. CLOSING THE LOOP: BACK TO BUSINESS UNDERSTANDING
+================================================================
+  - "Over the wall" handoff risk: the model that ships is what
+    the engineers build, not what the data scientists designed.
+    Fix: bring development team members in early as advisors.
+  - KEY TERM: data science engineer. A software engineer with
+    expertise in both production systems and data science. Takes
+    on more responsibility as the project matures and eventually
+    owns the product; data scientists stay involved through final
+    deployment as advisors or developers.
+  - Whether or not deployment succeeds, the process often loops
+    back to Business Understanding. Mining yields insight into
+    the problem; a second iteration can improve the solution or
+    even spawn new lines of business.
+  - Deployment failure is not required to restart. Evaluation
+    alone can show results are not good enough, forcing a new
+    problem definition or new data. That is the "shortcut" arrow
+    from Evaluation back to Business Understanding in the CRISP
+    diagram. In practice every stage should have shortcuts back
+    to every prior stage, because the process is exploratory.
+  - KEY TERM: CRISP-DM (added definition). Cross Industry
+    Standard Process for Data Mining: the six-stage cycle of
+    Business Understanding, Data Understanding, Data Preparation,
+    Modeling, Evaluation, Deployment, with arrows looping back.
+
+================================================================
+2. IMPLICATIONS FOR MANAGING THE DATA SCIENCE TEAM
+================================================================
+  - Tempting mistake: treating data mining as a software
+    development cycle. Understandable: projects often start in
+    software departments, data comes from a large system and
+    results feed back into it, and software managers like agreed
+    milestones and unambiguous success. The CRISP diagram looks
+    deceptively like a dev cycle.
+  - Why it is a mistake: data mining is exploratory, closer to
+    R&D than engineering. CRISP iterates on approaches and
+    strategy, not on software designs. Outcomes are far less
+    certain, and one step's results can change the fundamental
+    understanding of the problem.
+  - Engineering straight for deployment is an expensive premature
+    commitment. Instead buy information to reduce uncertainty:
+      - Small: pilot studies, throwaway prototypes.
+      - Literature review (what has been tried, how it worked).
+      - Large: experimental testbeds for extensive agile
+        experimentation.
+  - To a software manager this looks like research, maybe more
+    than they are comfortable with.
+
+  SIDEBAR: SOFTWARE SKILLS VERSUS ANALYTICS SKILLS
+  - Software engineering prizes efficient, high-quality code
+    written from requirements; people get measured by code volume
+    or bug tickets closed.
+  - Analytics prizes: formulating problems well, prototyping
+    quickly, making reasonable assumptions under ill-structured
+    problems, designing experiments that are good investments,
+    analyzing results.
+  - Hire for the analytics list, not for traditional software
+    engineering expertise, when building a data science team.
+
+================================================================
+3. OTHER ANALYTICS TECHNIQUES: THE BIG PICTURE
+================================================================
+  - The book's focus is data-analytic thinking and extracting
+    useful patterns. Other technologies sit beside it; know their
+    goals, their role, and when to call in an expert.
+  - The book says it presents "six groups" of related techniques;
+    the section headings that follow are Statistics, Database
+    Querying (incl. OLAP), Data Warehousing, Regression Analysis,
+    Machine Learning and Data Mining, and a closing Answering
+    Business Questions section (six headings). The dividing line:
+    data mining is the AUTOMATED search for knowledge, patterns,
+    or regularities in data. The others mostly are not.
+  - Core business-analyst skill: recognizing which technique fits
+    a given problem.
+
+================================================================
+4. STATISTICS
+================================================================
+  - The word "statistics" has two senses in business analytics.
+
+  Sense 1: summary statistics
+  - KEY TERM: summary statistics. Catchall for computing numeric
+    values of interest from data: sums, averages, rates, and so
+    on. Often computed CONDITIONALLY on subsets (churn rate for
+    men vs. women; high-income customers in the Northeast). Basic
+    building blocks of data science.
+  - Pick a summary statistic with attention to (a) the business
+    problem and (b) the DISTRIBUTION of the data.
+  - Worked example: 2004 Census Bureau Economic Survey. Mean U.S.
+    income was over $60,000, but income is highly skewed (many
+    make little, some make enormously much), so the mean misleads
+    for policy. Median income (half make more, half less) was
+    only $44,389.
+  - KEY TERM: skewed distribution (added definition). A
+    distribution whose values pile up on one side with a long
+    tail on the other, so the mean gets pulled toward the tail
+    and away from the typical value.
+  - Two questions to ask before trusting any statistic: have you
+    thought about the question you want answered, and have you
+    considered the distribution and whether the statistic fits?
+
+  Sense 2: Statistics, the field
+  - KEY TERM: Statistics (proper noun). The field of study; a
+    component of the larger field of Data Science. Covers data
+    distributions and which summaries suit each, using data to
+    test hypotheses, and estimating the uncertainty of
+    conclusions. Many model and pattern extraction techniques in
+    the book have roots here.
+  - KEY TERM: hypothesis testing. Statistical procedure that asks
+    what the chance is that an observed difference or pattern is
+    just random variation. For data mining, it helps decide
+    whether a pattern is a valid general regularity or a chance
+    occurrence in one dataset.
+  - Worked example: preliminary study shows Northeast churn of
+    22.5% vs. 15% nationwide. Churn varies by region and time, so
+    some difference is expected, but 1.5x the national rate
+    looks unusually high. Hypothesis testing answers "what is
+    the chance this is random variation?"
+  - KEY TERM: confidence interval. Quantification of uncertainty
+    as a range. Example: overall churn is 15%, and 95% of the
+    time the rate is expected to fall between 13% and 17%.
+  - The contrast: data mining is hypothesis GENERATION (can we
+    find patterns at all?). Hypothesis TESTING should follow,
+    generally on different data (Chapter 5). Data mining also
+    produces numerical estimates, and confidence intervals on
+    those are wanted too (revisited under evaluation).
+  - The book stops there on basic statistics; introductory texts
+    cover it properly.
+  - KEY TERM: correlation. Two meanings, like "statistics".
+    General-purpose: variation in one quantity tells us something
+    about variation in another (e.g. indicators that correlate
+    with later defection). Technical: a specific formula, e.g.
+    linear correlation. Correlation is the jumping-off point for
+    Chapter 3.
+
+================================================================
+5. DATABASE QUERYING
+================================================================
+  - KEY TERM: query. A specific request for a subset of data, or
+    for statistics about data, written in a technical language
+    and posed to a database system.
+  - Tools are usually frontends to database systems, built on SQL
+    or a GUI.
+      - KEY TERM: SQL (added definition). Structured Query
+        Language, the standard language for asking relational
+        databases for data.
+      - KEY TERM: QBE (query-by-example). Named in the source as
+        the GUI example; a form you fill in describing the records
+        you want instead of writing SQL (added definition).
+  - Example: if "profitable" can be defined operationally from
+    items in the database, a query answers "Who are the most
+    profitable customers in the Northeast?" and returns a list,
+    possibly ranked. Fundamental difference from data mining:
+    NO discovery of patterns or models.
+  - Queries fit when the analyst already suspects an interesting
+    subpopulation and wants to investigate it or confirm a
+    hypothesis. Suspecting middle-aged Northeast men churn oddly:
+
+    SELECT * FROM CUSTOMERS WHERE AGE > 45 and SEX='M' and DOMICILE = 'NE'
+
+    The "*" retrieves all information about them from the
+    CUSTOMERS table.
+  - The mining direction, by contrast: data mining could PRODUCE
+    that query. Examine prior customers who did and did not
+    defect, discover that the segment "AGE > 45 and SEX male and
+    DOMICILE Northeast-USA" is predictive of churn, then
+    translate the pattern into SQL and let a query tool pull the
+    matching records.
+  - Query tools do real work: summary statistics over
+    subpopulations, sorting, joining multiple related tables.
+    Data scientists tend to get good at writing queries.
+  - KEY TERM: OLAP (On-line Analytical Processing). An
+    easy-to-use GUI for querying large data collections to
+    support exploration. "On-line" means realtime answers.
+    Unlike ad hoc SQL, the DIMENSIONS of analysis must be
+    pre-programmed (e.g. sales volume by region and time); the
+    analyst then drills down by clicking, dragging, and
+    manipulating dynamic charts.
+  - OLAP is manual or visual exploration only: no modeling, no
+    automatic pattern finding. Unlike OLAP, data mining tools
+    generally can incorporate new dimensions of analysis easily
+    as part of the exploration. OLAP tools can be a useful
+    complement to data mining tools for discovery from business
+    data.
+
+================================================================
+6. DATA WAREHOUSING
+================================================================
+  - KEY TERM: data warehouse. A store that collects and coalesces
+    data from across an enterprise, often from multiple
+    transaction-processing systems that each have their own
+    database. Analytical systems can read from it.
+  - Warehousing is a FACILITATING technology for data mining, not
+    a necessity: most data mining does not touch a warehouse.
+    But firms that build one can apply mining more broadly and
+    deeply.
+  - Example: a warehouse that integrates sales, billing, and HR
+    records can be mined for characteristic patterns of
+    effective salespeople.
+
+================================================================
+7. REGRESSION ANALYSIS
+================================================================
+  - KEY TERM: regression analysis (added definition). The family
+    of analytic methods, widely used in statistics and
+    econometrics-based fields, for modeling how a numeric outcome
+    depends on other variables. Source point: it shares core
+    methods with this book but differs in EMPHASIS.
+  - Classic regression analysis: explain a particular dataset
+    (why did these customers churn?).
+  - This book (data mining): extract patterns that GENERALIZE to
+    other data, to improve a business process. Typically that
+    means estimating or predicting values for cases NOT in the
+    analyzed data (which not-yet-departed customers are best to
+    target?).
+  - Consequences of the predictive emphasis: time spent on
+    testing patterns on new data to check generality, and on
+    techniques that curb the tendency to find dataset-specific
+    patterns that do not generalize to the population.
+  - KEY TERM: explanatory vs. predictive modeling (the book names
+    the pair; definition added). Explanatory modeling aims to account for the data
+    you have; predictive modeling aims to do well on data you have
+    not seen. Source point: the
+    debate between them runs deep (beyond the book's scope).
+    Techniques overlap heavily, but explanatory lessons do not
+    all carry over, so a reader trained in regression may hit
+    lessons that look new or even contradictory.
+  - KEY TERM: overfitting (added definition). Fitting patterns
+    that are specific to the training data rather than the
+    population; the failure mode the "generalize to new data"
+    emphasis is guarding against.
+
+================================================================
+8. MACHINE LEARNING AND DATA MINING
+================================================================
+  - KEY TERM: machine learning methods. The collection of methods
+    for extracting (predictive) models from data. Developed
+    contemporaneously in several fields, most notably Machine
+    Learning, Applied Statistics, and Pattern Recognition.
+  - History: Machine Learning arose as a subfield of Artificial
+    Intelligence, concerned with improving an intelligent
+    agent's knowledge or performance over time from its
+    experience in the world. That improvement often means
+    analyzing environmental data and predicting unknowns, so the
+    data-analysis side grew to dominate the field. As methods
+    were deployed broadly, ML, Applied Statistics, and Pattern
+    Recognition grew close and the boundaries blurred.
+  - KEY TERM: Data Mining / KDD (Knowledge Discovery and Data
+    Mining). Field that started as an offshoot of Machine
+    Learning and remains closely linked to it. Both analyze data
+    for useful patterns, share techniques and algorithms, and
+    researchers move between the communities seamlessly.
+  - Differences that remain:
+      - ML covers many kinds of performance improvement, so it
+        includes robotics and computer vision (not part of KDD),
+        plus agency and cognition (how an agent uses learned
+        knowledge to reason and act), which are not Data Mining
+        concerns.
+      - KDD spun off to focus on concerns raised by real-world
+        applications. A decade and a half later it is still more
+        application-oriented than ML; commercial and business
+        research gravitates to KDD.
+      - KDD cares about the WHOLE analytics process: data
+        preparation, model learning, evaluation, and so on.
+
+================================================================
+9. ANSWERING BUSINESS QUESTIONS WITH THESE TECHNIQUES
+================================================================
+  Four related but subtly different questions. Knowing the
+  difference tells you which technology to use and which people
+  to consult.
+
+  1. Who are the most profitable customers?
+     - If "profitable" is clearly definable from existing data:
+       a straightforward DATABASE QUERY. A standard query tool
+       pulls customer records, sortable by cumulative transaction
+       amount or another operational profitability indicator.
+
+  2. Is there really a difference between the profitable
+     customers and the average customer?
+     - A question about a conjecture or hypothesis ("there is a
+       difference in value to the company"). STATISTICAL
+       HYPOTHESIS TESTING confirms or disconfirms it and can give
+       a probability or confidence bound that the difference is
+       real. Typical result: the value of profitable customers is
+       significantly different from the average, with probability
+       < 5% that this is due to random chance.
+
+  3. But who really are these customers? Can I characterize
+     them?
+     - Wanting common characteristics, not just a list.
+       Individual characteristics come from DATABASE QUERYING,
+       which also yields summary statistics. Deeper analysis
+       finds what characteristics DIFFERENTIATE profitable from
+       unprofitable customers: that is DATA SCIENCE, using data
+       mining for automated pattern finding.
+
+  4. Will some particular new customer be profitable? How much
+     revenue should I expect this customer to generate?
+     - DATA MINING techniques that examine historical customer
+       records and build predictive models of profitability, then
+       apply those models to new customers.
+     - Two subtly different mining tasks. The first is
+       CLASSIFICATION: predict whether a new customer will be
+       profitable (yes/no, or the probability thereof). The
+       second predicts a numerical value the customer will bring
+       to the company. KEY TERM: regression (added definition).
+       In data mining, the task of predicting a numeric value for
+       each individual, as opposed to classification, which
+       predicts a category.
+
+================================================================
+10. CHAPTER SUMMARY
+================================================================
+  - Data mining is a craft with a well-defined process that
+    raises the odds of success. The process is a conceptual tool
+    the book keeps referring back to, showing where each
+    fundamental concept fits.
+  - Related fields developed canonical task types (classification,
+    regression, clustering), each with its own purpose and
+    solution techniques. A data scientist attacks a new project
+    by decomposing it until one or more canonical tasks appear,
+    choosing a technique for each, then composing the solutions.
+    Doing this well takes experience.
+  - A successful project is an intelligent compromise between
+    what the data can do (what they can predict, and how well)
+    and the project goals. Keep in mind how results will be used
+    and let that inform the process.
+  - Data mining differs from, and complements, supporting
+    technologies like statistical hypothesis testing and database
+    querying. Boundaries are not sharp, but knowing each
+    technique's strengths tells you when to use it.
+  - For a business manager, the process is a framework for
+    analyzing a project or proposal: a set of questions to judge
+    whether it is well conceived or fundamentally flawed.
+
+================================================================
+11. KEY TAKEAWAYS
+================================================================
+  - Data mining is R&D, not software engineering. Iterate on
+    approaches and strategy; buy information (pilots, prototypes,
+    lit review, testbeds) before committing to deployment.
+  - Hire analysts for problem formulation, fast prototyping,
+    sound assumptions, good experiment design, and analysis, not
+    for lines of code.
+  - Data mining = AUTOMATED pattern search. Querying and OLAP
+    find what you already suspect; statistics tests whether it is
+    real; mining finds it in the first place.
+  - Mining generates hypotheses; statistics tests them, ideally
+    on different data.
+  - Match the statistic to the distribution (mean vs. median).
+  - Regression analysis explains one dataset; predictive modeling
+    must generalize to unseen cases. Same tools, different rules.
+  - KDD grew out of ML; ML is broader (robotics, vision,
+    agency), KDD is more application-oriented and process-wide.
+  - Classification predicts a category; regression predicts a
+    number.
+
+================================================================
+12. QUIZ-SAFE FACTS
+================================================================
+  - 2004 Census Bureau Economic Survey: mean U.S. income over
+    $60,000; median $44,389.
+  - Churn example: Northeast 22.5% vs. nationwide 15%, i.e. 1.5x.
+  - Confidence interval example: churn 15%, 95% of the time
+    between 13% and 17%.
+  - Hypothesis-test example result: probability < 5% that the
+    profitable-vs-average difference is random chance.
+  - Example SQL: SELECT * FROM CUSTOMERS WHERE AGE > 45 and
+    SEX='M' and DOMICILE = 'NE'
+  - "On-line" in OLAP means realtime processing. OLAP dimensions
+    must be pre-programmed; SQL querying is ad hoc.
+  - Data warehouse: coalesces data from multiple
+    transaction-processing systems; facilitating, not necessary,
+    for mining.
+  - ML arose as a subfield of Artificial Intelligence; KDD spun
+    off from ML "a decade and a half" ago (as of the book).
+  - ML-only areas: robotics, computer vision, agency, cognition.
+  - The book says it presents "six groups" of related analytic
+    techniques; section headings: Statistics, Database Querying
+    (incl. OLAP), Data Warehousing, Regression Analysis, Machine
+    Learning and Data Mining (KDD), Answering Business Questions.
+  - Maxim: "Your model is not what the data scientists design,
+    it's what the engineers build."
+  - Three canonical task types named in the Summary:
+    classification, regression, clustering.

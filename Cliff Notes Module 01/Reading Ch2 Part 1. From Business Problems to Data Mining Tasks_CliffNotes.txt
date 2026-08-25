@@ -1,0 +1,384 @@
+Reading, Chapter 2, Part 1: From Business Problems to Data Mining Tasks
+Course: Applied Predictive Modeling (CMPINF-2120)
+Source: Provost & Fawcett, Data Science for Business, Ch. 2 (assigned reading), pages 1-8 of the PDF
+
+================================================================
+1. CHAPTER FRAMING
+================================================================
+  - Fundamental concepts: canonical data mining tasks; the data
+    mining process; supervised vs unsupervised mining.
+  - Core principle: data mining is a PROCESS with well-understood
+    stages. Some are IT work (automated pattern discovery and
+    evaluation); others need an analyst's creativity, business
+    knowledge, and common sense. Knowing the process makes
+    projects systematic instead of "heroic endeavors driven by
+    chance and individual acumen." It is also the book's
+    overarching framework.
+  - Chapter order: task types (this note), then the process
+    (CRISP-DM, next note), then adjacent topics the book skips
+    (databases, data warehousing, basic statistics).
+
+  KEY TERMS
+  - Data mining: automated extraction of patterns and models from
+    data; treated here as a staged process, not one algorithm
+    run. (added definition)
+  - Individual: an entity we have data about. Usually a customer
+    or consumer, but can be inanimate, e.g. a business. Made
+    precise in Chapter 3.
+
+================================================================
+2. DECOMPOSING BUSINESS PROBLEMS INTO TASKS
+================================================================
+  - Every data-driven business problem is unique: its own goals,
+    desires, constraints, even personalities. As in engineering,
+    common tasks underlie them.
+  - Data scientists, with business stakeholders, DECOMPOSE the
+    problem into subtasks, solve them, then RECOMPOSE the
+    solutions. Some subtasks are unique to the business; others
+    are common data mining tasks with known solutions.
+  - MegaTelCo churn example: specifics are unique, but one
+    subtask appears in any churn problem: estimate from
+    historical data the probability that a customer terminates
+    her contract shortly after it expires. Once data are in the
+    right format (Chapter 3), that estimation is a standard task.
+  - TIP (book sidebar): a critical skill is breaking an analytics
+    problem into pieces that each match a known task with
+    existing tools. Avoids reinventing the wheel; focuses human
+    creativity on what is not automated.
+  - Despite countless algorithms, only a handful of fundamentally
+    different task TYPES exist. Most basic form of the first two:
+    finding "correlations" between one variable describing an
+    individual (e.g. left after contract expired) and others.
+
+  KEY TERMS
+  - Churn: customers leaving a company (here, a telecom) for a
+    competitor or cancelling service; churn prediction estimates
+    who is likely to leave. (added definition)
+  - Correlation: a statistical association between two variables,
+    such that knowing one tells you something about the other.
+    (added definition)
+
+================================================================
+3. THE NINE COMMON DATA MINING TASKS
+================================================================
+
+  3.1 CLASSIFICATION and CLASS PROBABILITY ESTIMATION
+  - Predict, for each individual, which of a small set of
+    (usually mutually exclusive) classes it belongs to. Example:
+    "Among all the customers of MegaTelCo, which are likely to
+    respond to a given offer?" Classes: will respond / will not
+    respond. A classification model assigns each new individual a class.
+  - Closely related: SCORING (class probability estimation). A
+    scoring model outputs, per class, a probability or other
+    likelihood score instead of a hard label. Each customer gets
+    a score for how likely they are to respond.
+  - A model that does one can usually be modified to do the other.
+
+  3.2 REGRESSION ("value estimation")
+  - Estimate or predict, for each individual, the numerical value
+    of some variable.
+  - Example: "How much will a given customer use the service?"
+    Target is usage; model built from similar individuals'
+    historical usage.
+  - Informal contrast: classification predicts WHETHER something
+    will happen; regression predicts HOW MUCH.
+
+  3.3 SIMILARITY MATCHING
+  - Identify individuals similar to a given one, from known data.
+    Example: IBM finds companies similar to its best business
+    customers, using "firmographic" data, to point its sales
+    force at the best opportunities.
+  - Basis of one of the most popular recommendation methods (find
+    people similar to you in what they liked or bought). Also
+    underlies solutions to classification, regression, and
+    clustering. Chapter 6.
+
+  3.4 CLUSTERING
+  - Group individuals by similarity, NOT driven by any specific
+    purpose. Example: "Do our customers form natural groups or
+    segments?"
+  - Uses: preliminary domain exploration (natural groups may
+    suggest further tasks); input to decisions such as what
+    products to offer or develop, or how to structure customer
+    care and sales teams. Chapter 6.
+
+  3.5 CO-OCCURRENCE GROUPING
+  - Also called frequent itemset mining, association rule
+    discovery, and market-basket analysis.
+  - Find associations between entities based on the transactions
+    they appear in together. Example: "What items are commonly
+    purchased together?" Supermarket records may show ground meat
+    bought with hot sauce far more often than expected; acting on
+    it (promotion, display, combo offer) takes creativity.
+  - Versus clustering: clustering uses similarity of the objects'
+    ATTRIBUTES; co-occurrence uses similarity based on APPEARING
+    TOGETHER in transactions.
+  - Some recommendation systems do a form of affinity grouping
+    ("people who bought X also bought Y").
+  - Output: descriptions of items that occur together, usually
+    with co-occurrence frequency statistics and an estimate of
+    how surprising the co-occurrence is.
+
+  3.6 PROFILING (behavior description)
+  - Characterize the typical behavior of an individual, group, or
+    population. Scales from a whole population down to small
+    groups or single individuals.
+  - Example: "What is the typical cell phone usage of this
+    customer segment?" May need a complex description: night and
+    weekend airtime averages, international usage, roaming
+    charges, text minutes, and so on.
+  - Often sets behavioral norms for ANOMALY DETECTION: fraud
+    detection, computer intrusion monitoring (someone breaking
+    into your iTunes account). Given a person's usual credit card
+    purchases, a new charge is checked against the profile; the
+    degree of mismatch becomes a suspicion score and an alarm
+    fires if it is too high.
+
+  3.7 LINK PREDICTION
+  - Predict connections between data items, usually by suggesting
+    a link should exist, possibly also estimating link strength.
+    Social network example: "Since you and Karen share 10
+    friends, maybe you'd like to be Karen's friend?"
+  - Movie recommendation: build a graph between customers and the
+    movies they watched or rated, then search for links that do
+    NOT exist yet but are predicted to exist and be strong. Those
+    become the recommendations.
+
+  3.8 DATA REDUCTION
+  - Replace a large dataset with a smaller one that keeps much of
+    the important information. The smaller set may be easier to
+    process and may reveal the information better.
+  - Example: a massive movie-viewing dataset reduced to a small
+    dataset of latent taste preferences (e.g. genre preferences).
+  - Usually loses information; what matters is the trade-off for
+    improved insight.
+
+  3.9 CAUSAL MODELING
+  - Understand which events or actions actually INFLUENCE others.
+    Example: a predictive model targets ads, and targeted
+    consumers buy at a higher rate. Did the ads cause purchases,
+    or did the model pick people who would have bought anyway?
+  - Techniques: those needing heavy data investment, such as
+    randomized controlled experiments ("A/B tests"), and
+    sophisticated methods for drawing causal conclusions from
+    observational data. Both are "counterfactual" analysis:
+    compare two situations that cannot both happen, the
+    "treatment" (e.g. showing an ad) happening vs not happening.
+  - A careful data scientist ALWAYS states the exact assumptions
+    needed for a causal conclusion to hold; there always are
+    some. Business trade-off: invest more to reduce the
+    assumptions, or accept the conclusions as good enough given
+    them.
+  - Even careful randomized experiments carry assumptions that
+    can invalidate conclusions. The "placebo effect" in medicine
+    is the notorious case of an overlooked assumption.
+
+  Book scope: principles underlying all nine, illustrated mainly
+  with classification, regression, similarity matching, and
+  clustering.
+
+  KEY TERMS
+  - Class: one of a small set of categories an individual may
+    belong to; the categorical target of classification.
+  - Score: a number representing the probability or likelihood
+    that an individual belongs to a class.
+  - Firmographic data: attributes describing companies (industry,
+    size, location, revenue); the business analogue of
+    demographics. (added definition)
+  - Recommendation system: software that suggests items to a user
+    based on similarity, co-occurrence, or predicted links.
+    (added definition)
+  - Market-basket analysis: co-occurrence grouping applied to
+    purchase transactions.
+  - Association rule: a discovered pattern of the form "if X is
+    in the transaction, Y tends to be too," with frequency and
+    surprise statistics. (added definition)
+  - Anomaly detection: flagging items whose behavior deviates
+    sharply from an established profile or norm. (added
+    definition)
+  - Randomized controlled experiment / A/B test: randomly assign
+    individuals to a treatment or a control group so outcome
+    differences can be attributed to the treatment. (added
+    definition)
+  - Observational data: data collected without the analyst
+    controlling who received the treatment. (added definition)
+  - Counterfactual: the outcome that would have occurred under
+    the alternative that did not happen. (added definition)
+  - Latent: not directly observed, but inferable from the data
+    (e.g. genre preference from viewing). (added definition)
+
+================================================================
+4. SUPERVISED VERSUS UNSUPERVISED METHODS
+================================================================
+  - Which task fits churn? Practitioners often frame churn as
+    finding SEGMENTS of customers more or less likely to leave.
+    That sounds like classification, or clustering, or even
+    regression. Choosing needs the distinctions below.
+  - Two similar-sounding questions about a customer base:
+      "Do our customers naturally fall into different groups?"
+        No specific purpose or TARGET for the grouping:
+        UNSUPERVISED.
+      "Can we find groups of customers who have particularly
+      high likelihoods of canceling their service soon after
+      their contracts expire?"
+        A specific target is defined (will she leave when the
+        contract expires?) and the segmentation exists to act on
+        churn likelihood: SUPERVISED.
+  - Origin of the terms (book sidebar): machine learning. A
+    teacher "supervises" the learner by supplying targets with
+    the examples. Unsupervised learning uses the same examples
+    with no targets; the learner must form its own conclusions
+    about what the examples have in common.
+  - Why it matters: if a specific target CAN be provided, phrase
+    the problem as supervised. Supervised tasks need different
+    techniques and their results are often much more useful,
+    because the grouping is aimed at predicting the target.
+    Clustering (unsupervised) groups by similarity with no
+    guarantee the groups are meaningful or useful for any purpose.
+  - Second condition for supervised mining: there must be DATA on
+    the target, not just a target definable in principle.
+    Example: knowing whether a customer stays six months is
+    useful, but if data are retained only two months, target
+    values cannot be produced. Acquiring target data is often a
+    key data science investment.
+  - The target value for an individual is its LABEL; the word
+    reflects that one often has to spend money to label data.
+
+  Task-to-method mapping (per the book)
+  - Generally supervised: classification, regression, causal
+    modeling.
+  - Could be either: similarity matching, link prediction, data
+    reduction.
+  - Generally unsupervised: clustering, co-occurrence grouping,
+    profiling.
+
+  Classification vs regression: decided by TARGET TYPE
+  - Regression: numeric target. Classification: categorical
+    (often binary) target.
+  - Three worked questions:
+      "Will this customer purchase service S1 if given incentive
+      I?" Classification, binary target (purchases or not).
+      "Which service package (S1, S2, or none) will a customer
+      likely purchase if given incentive I?" Classification,
+      three-valued target.
+      "How much will this customer use the service?" Regression,
+      numeric target (usage per customer, actual or predicted).
+  - Subtlety: business often wants a NUMERICAL prediction over a
+    CATEGORICAL target. In churn, yes/no may not be enough; we
+    want the probability the customer continues. Still
+    classification (the target is categorical), not regression.
+    Where clarity matters: "class probability estimation."
+  - Two vital early decisions in any project:
+      (i) supervised or unsupervised line of attack;
+      (ii) if supervised, a PRECISE definition of the target
+      variable: a specific quantity that is the focus of the
+      mining and for which values can be obtained for some
+      example data. Revisited in Chapter 3.
+
+  KEY TERMS
+  - Segment: a subgroup of customers sharing some characteristic
+    or behavior. (added definition)
+  - Supervised learning: the data include a target value for each
+    example, and the model learns to predict that target.
+  - Unsupervised learning: no target is given; the method finds
+    structure (groups, associations, profiles) on its own.
+  - Target (target variable): the specific quantity the model is
+    built to predict.
+  - Label: the target value recorded for a single individual.
+  - Categorical variable: takes one of a fixed set of discrete
+    values (e.g. accepted / rejected). (added definition)
+  - Binary target: a categorical target with exactly two values.
+    (added definition)
+  - Numeric variable: takes a measurable number (e.g. minutes of
+    usage). (added definition)
+  - Class probability estimation: classification whose output is
+    the probability of each class rather than a single class.
+
+================================================================
+5. DATA MINING VERSUS THE USE OF ITS RESULTS
+================================================================
+  - Second key distinction: (1) MINING the data to find patterns
+    and build models, vs (2) USING the results of the mining.
+  - Students and managers alike confuse them. Intended use should
+    inform the mining, but the two stay distinct.
+  - Churn deployment scenario: mining creates a class probability
+    estimation model M. For each existing customer, described by
+    a set of characteristics, M takes those as input and produces
+    a score or probability of attrition. That is the USE. The
+    mining produced M from other, often historical, data.
+
+  Figure 2-1, "Data mining versus the use of data mining results"
+  - Top half (Mining): a Historical Data table with columns x, y,
+    z, class. Sample rows: 14 / True / Red / accepted; 6 / True /
+    Blue / rejected; 50.3 / False / Red / accepted. Caption:
+    "Training data have all values specified." An arrow through a
+    Data mining step (magnifier icon) produces a Model (drawn as
+    a decision tree). "Model is deployed."
+  - Bottom half (Use): a New data item, 30 / false / Red / ?,
+    class unknown ("e.g. will customer accept?"). Fed to the
+    deployed model, output: "Class: accepted, Probability: 0.88."
+  - Point: historical data have the target ("class") filled in;
+    the model then predicts both the class value and its
+    probability for new data whose class is unknown.
+
+  KEY TERMS
+  - Model: the pattern or rule set produced by data mining that
+    maps an individual's characteristics to a prediction. (added
+    definition)
+  - Training data: the historical examples, with targets
+    specified, used to build the model. (added definition)
+  - Deployment: putting the finished model into operation on new
+    cases. (added definition)
+  - Attrition: customer loss; used here as a synonym for churn.
+    (added definition)
+  - Decision tree: a model that predicts by walking a series of
+    attribute tests from a root node down to a leaf holding the
+    prediction; the tree in Figure 2-1 is one. (added definition)
+
+================================================================
+6. KEY TAKEAWAYS
+================================================================
+  - Decompose the business problem into common data mining
+    subtasks; recompose the solutions.
+  - Nine task types: classification, regression, similarity
+    matching, clustering, co-occurrence grouping, profiling, link
+    prediction, data reduction, causal modeling.
+  - Classification = whether; regression = how much. Both are
+    "find correlations with a target" at their most basic.
+  - Supervised = a target is defined AND target data exist.
+    Unsupervised = no target; results may not be useful for any
+    given purpose.
+  - Probability of a categorical outcome is still classification
+    (class probability estimation), not regression.
+  - Mining (building the model) and use (applying it) are
+    different activities; use should inform mining.
+  - Causal claims always rest on assumptions; state them.
+
+================================================================
+7. QUIZ-SAFE FACTS
+================================================================
+  - Classification target: categorical (often binary). Regression
+    target: numeric.
+  - Generally supervised: classification, regression, causal
+    modeling. Generally unsupervised: clustering, co-occurrence
+    grouping, profiling. Either: similarity matching, link
+    prediction, data reduction.
+  - Co-occurrence grouping aliases: frequent itemset mining,
+    association rule discovery, market-basket analysis.
+  - Profiling alias: behavior description. Regression alias:
+    value estimation.
+  - Clustering groups by attribute similarity; co-occurrence
+    grouping groups by appearing together in transactions.
+  - The target value for one individual is its label.
+  - Supervised mining needs data on the target, not just a target
+    definable in principle.
+  - A/B tests are randomized controlled experiments; causal
+    modeling methods are counterfactual analysis.
+  - Placebo effect: the book's example of an overlooked
+    assumption in randomized experimentation.
+  - Figure 2-1 output for the new item (30, false, Red): Class
+    accepted, Probability 0.88.
+  - IBM uses "firmographic" data for similarity matching to find
+    companies like its best customers.
+  - Link prediction example: "you and Karen share 10 friends."
+  - Supermarket co-occurrence example: ground meat with hot sauce.

@@ -1,0 +1,174 @@
+The kNN Method for Classification Tasks: Study Guide
+Course: Applied Predictive Modeling (CMPINF-2120)
+Source: The kNN method for classification tasks lecture transcript
+
+================================================================
+1. WHAT kNN IS
+================================================================
+  - KEY TERM: k-nearest neighbors (kNN): a classification method
+    that labels a new point by looking at the labels of the k
+    points closest to it in the data space.
+  - KEY TERM: classification: a supervised learning task whose
+    goal is to predict a categorical label (a class) for each
+    item (added definition).
+  - KEY TERM: supervised learning: learning from data where the
+    correct answer (the label) is already known for the
+    training points (added definition).
+  - KEY TERM: label: the class value attached to a data point
+    (here, "blue" or "green"). Labeled points are the training
+    data; the new point arrives unlabeled.
+
+================================================================
+2. THE THREE REQUIREMENTS
+================================================================
+  - A value of k: how many nearest neighbors to consult.
+  - Labeled points in a multi-dimensional space: each point has
+    coordinates (its feature values) plus a label.
+      - KEY TERM: feature / dimension: one measured attribute
+        of a data point; each feature is one axis of the space
+        (added definition).
+  - A distance function: a rule for measuring how far apart two
+    points are. Typically something like Euclidean distance (see
+    section 6).
+
+================================================================
+3. THE ALGORITHM
+================================================================
+  For every new point whose label is to be predicted:
+  - Step 1: find its k closest labeled points using the
+    distance function.
+  - Step 2: assign the label held by the majority of those k
+    neighbors.
+  - KEY TERM: majority rule: the predicted label is whichever
+    label the most neighbors carry.
+
+================================================================
+4. RULE: k MUST NOT BE A MULTIPLE OF THE NUMBER OF CLASSES
+================================================================
+  - If k is a multiple of the class count, the neighbor votes
+    can split evenly and produce a tie, leaving no majority.
+  - With two classes (blue, green): k = 2, 4, 6, ... are bad
+    choices. Odd k avoids ties in the two-class case (added).
+  - The worked example in section 5 shows the ties at k = 2
+    and k = 4.
+
+================================================================
+5. WORKED EXAMPLE (BLUE VS. GREEN)
+================================================================
+  Setup: labeled data with two classes, blue and green. A new
+  unlabeled black point arrives.
+  - Easy case 1: black point sits inside the blue cluster.
+    Label: blue.
+  - Easy case 2: black point sits right next to the green
+    cluster. Label: green.
+  - Hard case: black point sits between the two clusters. No
+    obvious answer, so run kNN.
+
+  The five closest neighbors of the hard-case point, in order of
+  increasing distance, carry these labels:
+    1st: blue
+    2nd: green
+    3rd: green
+    4th: blue
+    5th: green
+
+  Decisions for k = 1 through 5:
+    k=1: blue 1, green 0  -> blue
+    k=2: blue 1, green 1  -> tie (no decision)
+    k=3: blue 1, green 2  -> green
+    k=4: blue 2, green 2  -> tie (no decision)
+    k=5: blue 2, green 3  -> green
+
+  - Arithmetic check: counts are running totals of the ordered
+    label list above; every row matches.
+  - Both ties land on multiples of 2 (the class count), which
+    is the point of the rule in section 4.
+
+================================================================
+6. EUCLIDEAN DISTANCE
+================================================================
+  - KEY TERM: Euclidean distance: the straight-line distance
+    between two points, computed from the differences of their
+    coordinates.
+  - Two dimensions. Data item i has coordinates (x_i, y_i) and
+    data item k has coordinates (x_k, y_k):
+
+      d(i,k) = sqrt( (x_i - x_k)^2 + (y_i - y_k)^2 )
+
+    Take the difference on each axis, square each difference,
+    add the squares, take the square root of the sum.
+  - In the lecture figure, the black point is item k and the
+    blue point marked with the red arrow is item i. The two
+    ingredients of the distance are the x-axis gap
+    (x_i - x_k) and the y-axis gap (y_i - y_k).
+  - Generalization to n dimensions: add one squared-difference
+    term per axis (added; the lecture calls the generalization
+    trivial but does not write it out):
+
+      d(i,k) = sqrt( (x1_i - x1_k)^2 + (x2_i - x2_k)^2
+                     + ... + (xn_i - xn_k)^2 )
+
+================================================================
+7. STRENGTHS AND WEAKNESSES
+================================================================
+  Strengths:
+  - Intuitive.
+  - Simple to implement.
+  - No assumptions about the distribution of the underlying
+    data (non-parametric).
+      - KEY TERM: non-parametric: a method that does not assume
+        the data follow a specific probability distribution
+        (added definition).
+
+  Weaknesses:
+  - Computationally expensive on large data sets: predicting
+    one new point requires computing its distance to every
+    stored point.
+  - Sensitive to irrelevant features and noisy data, because
+    every dimension is used in the distance calculation.
+      - Transcript wording is "sensitivity to relevant
+        features"; read here as irrelevant features (a feature
+        that carries no class information still shifts the
+        distances) (added).
+  - Curse of dimensionality: high-dimensional spaces are
+    inherently sparse.
+      - KEY TERM: curse of dimensionality: as the number of
+        dimensions grows, the volume of the space grows so
+        fast that a fixed amount of data becomes sparse and
+        distances between points become less informative
+        (added definition).
+      - Transcript says "cares of dimensionality"; this is a
+        transcription of "curse of dimensionality".
+
+================================================================
+8. KEY TAKEAWAYS
+================================================================
+  - kNN needs k, labeled points with coordinates, and a
+    distance function.
+  - Predict by finding the k nearest labeled points and taking
+    the majority label.
+  - Never let k be a multiple of the number of classes; ties
+    result.
+  - Euclidean distance is the typical distance and extends to
+    any number of dimensions by adding squared-difference terms.
+  - Simple and free of distributional assumptions, but slow on
+    big data, hurt by irrelevant or noisy features, and weak in
+    high dimensions, which are inherently sparse.
+
+================================================================
+9. QUIZ-SAFE FACTS
+================================================================
+  - Three requirements of kNN: k, labeled multi-dimensional
+    points, a distance function.
+  - Decision rule: majority rule over the k nearest neighbors.
+  - Two classes: k = 2 and k = 4 tie; k = 1 gives blue, k = 3
+    and k = 5 give green in the lecture example.
+  - Neighbor label order in the example: blue, green, green,
+    blue, green.
+  - 2D Euclidean distance:
+    d(i,k) = sqrt( (x_i - x_k)^2 + (y_i - y_k)^2 )
+  - Three strengths: intuitive, simple implementation, no
+    distributional assumptions.
+  - Three weaknesses: computational cost on large data,
+    sensitivity to irrelevant features and noise, curse of
+    dimensionality (higher dimensions are inherently sparse).

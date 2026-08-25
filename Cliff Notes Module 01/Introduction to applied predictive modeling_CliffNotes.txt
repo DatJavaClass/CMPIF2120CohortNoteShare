@@ -1,0 +1,194 @@
+Introduction to Applied Predictive Modeling: Study Guide
+Course: Applied Predictive Modeling (CMPINF-2120)
+Source: Introduction to applied predictive modeling lecture transcript
+
+================================================================
+1. LECTURE ROADMAP
+================================================================
+  - The lecture maps the course: task types, the data each
+    needs, example techniques, and how to choose among them.
+  - Everything starts with data. The shape of the data depends
+    on the task type (unsupervised vs supervised).
+
+================================================================
+2. DATA FOR UNSUPERVISED VS SUPERVISED LEARNING
+================================================================
+  KEY TERMS
+  - Predictor measurements: the input data recorded for each
+    record (e.g. a house's square feet, year built, bedrooms).
+    Also called the "initial data".
+  - Response measurement: the extra column holding what we want
+    to predict. Either a label (a category) or a value (a
+    number).
+  - Unsupervised learning: the data is predictor measurements
+    only. No response column.
+  - Supervised learning: the data is predictor measurements
+    PLUS response measurements (labels or values).
+  - Parameters (added definition): settings supplied to an
+    algorithm that shape how it runs, e.g. the number of groups
+    to find in clustering.
+  - Model (added definition): the learned mapping from
+    predictors to response, reused on future data.
+
+  The two flows:
+  - Unsupervised: data + algorithm (+ optional parameters)
+    -> interesting observations / discovered patterns.
+  - Supervised: data + labels or values + algorithm (+ optional
+    parameters) -> a model of the data and values. Then: new
+    data + model -> predicted labels or values.
+
+================================================================
+3. UNSUPERVISED EXAMPLES
+================================================================
+  3a. Clustering
+  - Clustering: discovering groups of records that are in some
+    way similar. Members of a cluster should be more alike each
+    other than members of other clusters.
+  - Called the simplest, easiest-to-understand unsupervised
+    technique.
+  - Lecture example: points on a 2D plane split into three
+    groups (yellow, blue, pink). Asking for a different number
+    of groups can give different clusters.
+
+  3b. Anomaly detection
+  - Anomaly detection: identifying interesting records that
+    either need further investigation (they look like outliers)
+    or may indicate data errors. Unsupervised, usually paired
+    with visualization.
+  - Outlier (added definition): a record that lies far from the
+    bulk of the data.
+  - Challenger example (1986 space shuttle accident):
+      - The investigation concluded o-rings in part of the fuel
+        supply failed at launch, destroying the shuttle.
+      - Plot: x-axis = launch temperature, y-axis = o-ring
+        damage. Lower temperature, roughly higher damage.
+      - No prior launch had been below 50 degrees; even at
+        50 to 52 the damage index was very high.
+      - Challenger launched below 30 degrees Fahrenheit (as
+        stated in the lecture): a clear outlier relative to
+        prior data. (added: historically the launch was about
+        36 F and the o-rings sealed the solid rocket booster
+        joints)
+      - Caveat from the lecture: this was found after the fact,
+        during the investigation. Such outliers are much harder
+        to spot among millions of data points.
+
+  3c. Association rule learning
+  - Association rule learning: finding relationships between
+    variables, e.g. which products customers frequently buy
+    together. Lecture example: people who buy beer often buy
+    chips too.
+  - Goal: novel, interesting patterns the store can use for
+    marketing and promotions.
+  - Market basket analysis: the common name for association
+    rule learning applied to shopping data.
+  - Covered in more detail later in the course.
+
+================================================================
+4. CLASSIFICATION VS REGRESSION (HOUSING TABLE)
+================================================================
+  - Housing table: one row per house; columns record square
+    feet, year built, and number of bedrooms. These are the
+    predictor measurements.
+  - Classification: the response column holds labels. Here the
+    label is yes/no for "does this house have a pool?" Given a
+    new house (square feet, year, bedrooms), predict the
+    unknown label.
+  - Regression: the response column holds values instead of
+    labels. Here the value is the price the house sold for.
+    Given a new row, a regression algorithm predicts the
+    unknown value.
+  - Worked new row (given in the regression part): 1700 sq ft,
+    built in 2000, 3 bedrooms -> predict the sale price.
+
+================================================================
+5. SUPERVISED EXAMPLES
+================================================================
+  5a. Recommender systems
+  - Recommender system: data is user ratings of items (movies,
+    books, products); the system predicts an item's rating for
+    a user who presumably has not rated it yet.
+  - Collaborative filtering: predicts a user's rating from the
+    ratings of other users and that user's similarity to
+    everybody else. Covered later in the course.
+
+  5b. Decision trees
+  - Decision tree (added definition): a sequence of rule tests
+    on predictors that leads to a predicted label or value.
+  - Usable for both classification and regression; described
+    as very intuitive to implement.
+  - Lecture rule for the housing data: if the house has over
+    2000 square feet, it has a pool; otherwise it does not.
+
+  5c. Regression (as a technique)
+  - Regression: find a function that models the data with the
+    least amount of error.
+  - Linear regression: the simpler form. Fits a linear
+    (straight-line) function of the predictors (added
+    definition). More sophisticated forms come later in the
+    course.
+
+  5d. Naive Bayes
+  - Naive Bayes: a probabilistic classification algorithm.
+    Very simple, fast, and scalable.
+  - Probabilistic classifier (added definition): assigns the
+    class with the highest computed probability given the
+    predictors.
+  - Applications named: text classification (spam filtering,
+    sentiment analysis), document categorization, medical
+    analysis.
+
+================================================================
+6. CHOOSING A METHOD
+================================================================
+  Consider first:
+  - Type of problem: classification, regression, etc.
+  - Type of data: different techniques suit specific kinds of
+    data.
+  - Metric of interest: the measure of result quality; tune
+    the algorithm toward it.
+
+  Then:
+  - Pick an algorithm from the many available.
+  - Specify its parameters where needed.
+  - Apply any applicable optimization techniques on top of the
+    chosen algorithm to improve results further.
+  - Build a full-fledged evaluation pipeline to make it all
+    work. Evaluation pipeline (added definition): the
+    repeatable process for measuring model quality on held-out
+    data using the chosen metric.
+
+================================================================
+7. KEY TAKEAWAYS
+================================================================
+  - Unsupervised = predictors only; output is patterns.
+    Supervised = predictors + response; output is a model that
+    predicts labels or values for new data.
+  - Labels -> classification. Values -> regression.
+  - Unsupervised examples: clustering, anomaly detection,
+    association rules (market basket analysis).
+  - Supervised examples: recommender systems (collaborative
+    filtering), decision trees, regression, naive Bayes.
+  - Method choice: problem type, data type, metric -> algorithm
+    -> parameters -> optimization -> evaluation pipeline.
+
+================================================================
+8. QUIZ-SAFE FACTS
+================================================================
+  - Response measurements are labels (classification) or values
+    (regression).
+  - Clustering is the "most simple" unsupervised technique per
+    the lecture.
+  - Challenger: 1986; o-ring failure; no prior launch below
+    50 degrees; launch was below 30 degrees F (per lecture).
+  - Beer and chips is the association rule example.
+  - Housing predictors: square feet, year built, bedrooms.
+    Classification label: pool yes/no. Regression value: sale
+    price. Regression's new row: 1700 sq ft, 2000, 3 bedrooms.
+  - Decision tree rule: over 2000 sq ft -> pool.
+  - Decision trees work for both classification and regression.
+  - Naive Bayes: probabilistic, simple, fast, scalable; spam
+    filtering, sentiment analysis, document categorization,
+    medical analysis.
+  - Method-selection inputs: type of problem, type of data,
+    metric of interest.

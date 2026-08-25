@@ -1,0 +1,420 @@
+Reading, Chapter 2, Part 2: The Data Mining Process (CRISP-DM): Study Guide
+Course: Applied Predictive Modeling (CMPINF-2120)
+Source: Provost & Fawcett, Data Science for Business, Ch. 2 pages 8-16 of the PDF, plus Reading. Chapter 2. CRISP-DM Notes.txt
+
+================================================================
+1. WHY A PROCESS AT ALL
+================================================================
+  - Book's framing: data mining is a craft. Heavy on science and
+    technology, but application still involves art. Like other
+    mature crafts it has a well-understood process that structures
+    the problem and buys consistency, repeatability, objectivity.
+  - KEY TERM: data mining. Extracting useful knowledge, patterns,
+    or regularities from data, typically via automated techniques,
+    to support business decisions. (added definition)
+  - KEY TERM: CRISP-DM. Cross Industry Standard Process for Data
+    Mining (book cites Shearer, 2000). A six-stage, iterative
+    workflow for a data mining / data science project. Victor's
+    notes: the point is to not jump straight into building a model
+    before you understand the problem.
+  - History from Victor's notes only: dates from 1999; tool- and
+    industry-agnostic by design, which is why it survived into an
+    era it was never built for. (Book gives only Shearer 2000.)
+  - Setup from p. 8, Figure 2-1: keep two things straight, (1)
+    mining data to find patterns and build models versus (2) using
+    the results. Students and managers confuse them. Churn: mining
+    produces a class probability estimation model M from historical
+    data; use means feeding a current customer's characteristics
+    into M and getting an attrition probability out. Figure 2-1
+    draws mining on top, use on the bottom.
+      - KEY TERM: class probability estimation. Supervised task
+        outputting, per individual, an estimated probability of
+        belonging to each class (here: churn / not). (added
+        definition)
+      - KEY TERM: churn / attrition. Customers leaving for a
+        competitor or ending service. (added definition)
+
+================================================================
+2. FIGURE 2-2: THE CRISP CYCLE
+================================================================
+  - Layout: clockwise outer loop, six boxes inside, a "Data"
+    cylinder at the center.
+  - Arrows inside the loop:
+      - Business Understanding <-> Data Understanding (two-way)
+      - Data Understanding -> Data Preparation
+      - Data Preparation <-> Modeling (two-way)
+      - Modeling -> Evaluation
+      - Evaluation -> Deployment
+      - Evaluation -> Business Understanding (the "shortcut")
+      - Outer ring: Deployment back to Business Understanding.
+  - Book's reading: iteration is the rule. One pass without solving
+    the problem is generally not a failure; the first pass is often
+    data exploration, the second is far better informed.
+  - Victor's notes, same point: a cycle, not a line. The outer loop
+    matters because deployment feeds new business questions.
+    Evaluation can reveal a need for different data, modeling can
+    expose data-prep problems, exploration can reveal a badly
+    formulated business question. Move backward and forward as
+    needed.
+  - Victor's notes name the two most common loops as 1<->2 and
+    3<->4. Read under the standard 1-6 numbering (his "phases 1 and
+    6" remark implies it) that is Business <-> Data Understanding
+    and Data Preparation <-> Modeling: exactly the two two-way
+    arrows in Figure 2-2.
+
+================================================================
+3. THE SIX STAGES
+================================================================
+Numbering below is the standard 1-6. (Victor's file leaves Business
+Understanding unnumbered and numbers the rest 1-5; same six stages,
+same order.)
+
+  3.1 BUSINESS UNDERSTANDING
+  - Understand the problem to be solved. Business projects seldom
+    arrive as clean data mining problems; recasting the problem and
+    designing a solution is itself iterative discovery ("cycles
+    within a cycle"). The first formulation is rarely complete or
+    optimal.
+  - Where analyst creativity matters most. Book's tip: the key to a
+    great success is often a creative problem formulation, i.e. how
+    to cast the business problem as one or more data science
+    problems. Knowing the fundamentals helps you see novel
+    formulations.
+  - Practical move: engineer the problem so subproblems map onto
+    the standard tasks (classification, regression, probability
+    estimation, etc.) from the earlier section "From Business
+    Problems to Data Mining Tasks."
+      - KEY TERM: classification. Supervised task predicting which
+        of a small set of classes an individual belongs to. (added
+        definition)
+      - KEY TERM: regression. Supervised task predicting a numeric
+        value for an individual. (added definition)
+  - Think about the problem AND the use scenario: what exactly do
+    we want to do, how, and which parts could be data mining
+    models. Book calls this one of the most important fundamental
+    principles of data science (Ch. 7 and 11 are devoted to it).
+    Expect to loop back and adjust the use scenario to fit the real
+    business need.
+  - Framing the business problem in terms of expected value lets
+    you decompose it systematically into data mining tasks (detail
+    in later chapters).
+      - KEY TERM: expected value. Probability-weighted average of a
+        decision's outcomes: sum over outcomes of
+        p(outcome) * value(outcome). (added definition)
+  - Victor's example: "We want to predict which customers are
+    likely to cancel their subscriptions so we can intervene."
+    Same churn framing the book uses.
+
+  3.2 DATA UNDERSTANDING
+  - Data are the raw material. Know their strengths and limits;
+    data rarely match the problem exactly. Historical data were
+    usually collected for unrelated purposes or none at all.
+    Customer, transaction, and marketing response databases hold
+    different information, cover different (intersecting)
+    populations, and vary in reliability.
+  - Data costs vary: some nearly free, some take effort, some must
+    be purchased, some do not exist and need an ancillary project
+    to collect. Critical here: estimate cost vs. benefit per data
+    source and decide whether further investment is merited. This
+    is the "data as an asset with an acquisition cost" idea.
+  - Even acquired data need collating. Customer records and product
+    identifiers are notoriously noisy; matching records so each
+    customer appears once is itself a hard analytics problem (book
+    cites Hernandez & Stolfo 1995; Elmagarmid et al. 2007).
+  - Data understanding can redirect the project or fork the team.
+    Book's fraud example:
+      - Credit card fraud: charges appear on the statement, so
+        fraud gets caught (by company or customer). Fraudster and
+        legitimate customer are different people with opposite
+        goals, so labels (fraud / legitimate) are reliable. Classic
+        supervised problem.
+      - Medicare fraud (billions of dollars a year in the US):
+        perpetrators (providers submitting false claims, sometimes
+        patients) are also legitimate users of the billing system.
+        No disinterested third party declares the correct charges,
+        so no reliable target variable. Supervised learning does
+        not apply; use unsupervised approaches (profiling,
+        clustering, anomaly detection, co-occurrence grouping).
+      - Lesson: "both are fraud detection" is a superficial,
+        misleading similarity. Dig beneath the surface, uncover the
+        structure of problem and data, then match to one or more
+        tasks. A business problem often contains several tasks of
+        different types whose solutions must be combined (book
+        points to Ch. 11).
+      - KEY TERM: supervised learning. Learning from data with a
+        known target (label) per example, e.g. fraud / legitimate.
+        (added definition)
+      - KEY TERM: unsupervised learning. Finding structure in data
+        with no target variable, e.g. clustering or anomaly
+        detection. (added definition)
+      - KEY TERM: target variable. The quantity or class the model
+        is meant to predict. (added definition)
+  - Victor's example: "We have customer demographics, subscription
+    history, support calls, and cancellation records." His summary:
+    determine what the data contain, whether they are relevant,
+    and what problems they have.
+
+  3.3 DATA PREPARATION
+  - Analytic tools impose requirements on data form, so conversion
+    is usually needed. Prep often runs alongside data understanding
+    rather than strictly after it.
+  - Typical work: convert to tabular format, remove or infer
+    missing values, convert data types. Some techniques want
+    symbolic / categorical data, others only numeric. Numeric
+    values often need normalizing or scaling to be comparable.
+    Rules of thumb exist; Ch. 3 covers the usual mining data
+    format. The book otherwise does not focus on prep (cites Pyle
+    1999 as a whole book on it).
+      - KEY TERM: normalization / scaling. Rescaling numeric
+        variables to a common range or spread so no variable
+        dominates purely by its units. (added definition)
+  - Sidebar NOTE: data scientists may spend much early time
+    defining the variables used later. A main entry point for
+    human creativity, common sense, and business knowledge.
+    Solution quality often rests on how well analysts structure
+    the problem and craft the variables (and it can be hard for
+    them to admit it).
+  - LEAKAGE (book cites Kaufman et al. 2012):
+      - KEY TERM: leak. A variable in the historical data carrying
+        information about the target that would NOT actually be
+        available at decision time.
+      - Example 1: predicting whether a web visitor will end the
+        session or keep surfing. "Total pages visited in the
+        session" is very predictive, but known only after the
+        session ends, when the target is also known (Kohavi et al.
+        2000).
+      - Example 2: predicting whether a customer will be a "big
+        spender." Categories of items bought, or worse the tax
+        paid, are very predictive but unknown at decision time
+        (Kohavi & Parekh 2003).
+      - Why it bites here: prep is done after the fact from
+        historical data, so leaks are easy to build in unnoticed.
+        Ch. 14 has a hard-to-find real case.
+  - Victor's example: "Remove duplicates, deal with missing values,
+    and create a variable representing number of support calls in
+    the last 90 days." His last item is exactly the book's "craft
+    the variables" sidebar point. (added inference: support calls
+    in the prior 90 days is known at decision time, so not a leak.)
+
+  3.4 MODELING
+  - Book defers modeling to the next several chapters. Here: the
+    output of modeling is some model or pattern capturing
+    regularities in the data.
+  - The primary place data mining techniques are applied, and the
+    part of the craft where the most science and technology can be
+    brought to bear. Worth knowing what techniques and algorithms
+    exist.
+      - KEY TERM: model. A simplified representation of reality,
+        here a formula or rule structure built from data that maps
+        inputs to a prediction. (added definition)
+  - Victor's notes only (book does not state it in this section):
+    usually try multiple approaches rather than assume one
+    algorithm will win. His example: "Train logistic regression,
+    decision tree, and random forest models to predict
+    cancellation."
+      - KEY TERM: logistic regression. A linear model for
+        classification that outputs class probabilities. (added
+        definition)
+      - KEY TERM: decision tree. A model that splits data with a
+        sequence of if/then tests on attributes, ending in a
+        prediction at each leaf. (added definition)
+      - KEY TERM: random forest. An ensemble of many decision trees
+        trained on random subsets of data and attributes, with
+        predictions combined by voting or averaging. (added
+        definition)
+
+  3.5 EVALUATION
+  - Purpose: assess results rigorously and gain confidence they are
+    valid and reliable before moving on. Look hard enough at any
+    dataset and you will find patterns, but they may not survive
+    careful scrutiny; the aim is confidence that they are true
+    regularities and not just idiosyncrasies or sample anomalies.
+  - Lab vs. deployment: you can deploy straight from mining, but it
+    is inadvisable. Testing first in a controlled laboratory
+    setting is usually far easier, cheaper, quicker, and safer.
+  - Equally important: evaluation checks that the model satisfies
+    the ORIGINAL business goals (the primary goal of data science
+    for business is to support decision making). The mining
+    solution is usually one piece of a larger solution and must be
+    judged as such.
+  - A model can pass strict lab tests and still be impractical.
+    Book's example: detection systems (fraud, spam, intrusion)
+    often produce too many false alarms. A model can be more than
+    99% accurate by lab standards and still be economically
+    infeasible (cost of staff chasing alarms, cost of customer
+    dissatisfaction).
+      - KEY TERM: false alarm / false positive. The model flags an
+        instance as positive (fraud, spam) when it is actually
+        negative. (added definition)
+      - KEY TERM: accuracy. Fraction of predictions that are
+        correct. (added definition)
+  - Evaluation is quantitative and qualitative. Stakeholders who
+    sign off on deployment want to see the model does more good
+    than harm and is unlikely to make catastrophic mistakes. So
+    think about model comprehensibility, and if the model itself is
+    not comprehensible (a complex formula), how to make its
+    behavior comprehensible.
+  - Why a thorough evaluation framework matters: detailed
+    performance data on a deployed model can be hard or impossible
+    to get. Production access is limited, and deployed systems have
+    many moving parts, so isolating one part's contribution is
+    hard. Sophisticated teams build testbeds mirroring production
+    data as closely as possible before taking the deployment risk.
+  - Extending evaluation beyond the lab (book's wording: "into the
+    development environment"): instrument a live system for
+    randomized experiments. Churn: after lab tests
+    suggest the model reduces churn, run an "in vivo" evaluation
+    where the live system randomly applies the model to some
+    customers and holds others as a control group (ties back to
+    Ch. 1 causal modeling). Design carefully; book points to Kohavi
+    et al. (2007, 2009, 2012) for lessons learned.
+      - KEY TERM: control group. Individuals deliberately NOT given
+        the treatment (here, not scored / not targeted) so the
+        treated group's outcome has a baseline. (added definition)
+  - Also instrument deployed systems to make sure the world is not
+    changing under the model. Behavior can change in direct
+    response to deployment (fraud, spam), and input data can change
+    in format or substance without anyone telling the data science
+    team. Book cites Raeder et al. (2012) on designing for this.
+  - Victor's example nails the business-goal half: "The model is
+    92% accurate, but does it identify customers early enough that
+    the company can actually do something?" His summary: does it
+    solve the original business problem, not merely look good
+    mathematically. Same emphasis as the book.
+
+  3.6 DEPLOYMENT
+  - Results of data mining (and increasingly the techniques
+    themselves) are put into real use to realize a return on
+    investment. Clearest case: implement a predictive model in an
+    information system or business process. Churn: integrate the
+    model with churn management, e.g. special offers to customers
+    predicted high-risk. Fraud: build the model into a workforce
+    management system that monitors accounts and opens "cases" for
+    analysts.
+  - Deploying the data mining SYSTEM rather than a fixed model:
+    online ad targeting, where systems automatically build (and
+    test) models in production when a new campaign appears. Two
+    reasons:
+      (i) the world may change faster than the data science team
+          can adapt (fraud, intrusion detection);
+      (ii) the business has too many modeling tasks to hand-curate
+           each model.
+    Then it is critical to instrument the process to alert the team
+    to anomalies and provide fail-safe operation (Raeder et al.
+    2012).
+  - Sidebar NOTE, deployment can be low-tech: in a celebrated case,
+    mining found rules that quickly diagnose and fix a common error
+    in industrial printing. Deployment was taping a sheet of paper
+    with the rules to the side of the printers (Evans & Fisher
+    2002). Deployment can also be subtle: a change to data
+    acquisition procedures, or a change in strategy, marketing, or
+    operations driven by mining insight.
+  - Victor's notes make the identical point: deployment does not
+    necessarily mean an AI system in production. It can be
+    integrating a model into software, producing a report or
+    dashboard, or changing a business process.
+  - Production re-coding: deploying usually means re-coding the
+    model for the production environment (speed, compatibility),
+    which can cost real money. Typically the data science team
+    produces a working prototype plus its evaluation and hands both
+    to a development team.
+  - Sidebar NOTE, "over the wall" risk: the handoff from data
+    science to development carries risk. Maxim: "Your model is not
+    what the data scientists design, it's what the engineers
+    build." Advice: bring developers in early as advisors;
+    increasingly these are "data science engineers" (software
+    engineers fluent in both production systems and data science).
+    Developers gradually take on more responsibility and eventually
+    own the product; data scientists stay involved through final
+    deployment as advisors or developers depending on skill.
+
+================================================================
+4. CLOSING THE LOOP
+================================================================
+  - Successful or not, deployment usually sends the process back to
+    Business Understanding. Mining yields a lot of insight into the
+    business problem and the difficulty of solving it, so a second
+    iteration can produce a better solution. Thinking hard about
+    the business, the data, and the performance goals often
+    produces new ideas, even new lines of business or ventures.
+  - You do not have to fail at deployment to restart. Evaluation
+    may show results not good enough to deploy, requiring a changed
+    problem definition or different data. That is the "shortcut"
+    arrow from Evaluation to Business Understanding in Figure 2-2.
+    In practice there should be shortcuts from every stage back to
+    every prior one: the process always keeps some exploratory
+    character and must be flexible enough to revisit earlier steps.
+  - Victor's notes only, on where projects go wrong: the two phases
+    people shortchange are 1 (Business Understanding) and 6
+    (Deployment), and those are also the two that determine whether
+    the project delivered anything. The book does not say this in
+    one sentence, but it lines up with the book's emphasis on
+    problem formulation as the key to success and on deployment as
+    where return on investment is realized.
+  - Tail of p. 16 opens "Implications for Managing the Data Science
+    Team." Continues in Part 3.
+
+================================================================
+5. KEY TAKEAWAYS
+================================================================
+  - CRISP-DM = six stages: Business Understanding, Data
+    Understanding, Data Preparation, Modeling, Evaluation,
+    Deployment. Data sits at the center.
+  - A cycle, not a line. Iteration is the rule; one pass is usually
+    reconnaissance.
+  - Most-used loops: Business <-> Data Understanding, Data Prep <->
+    Modeling. Plus the Evaluation -> Business Understanding
+    shortcut and the outer loop from Deployment.
+  - Creativity lives in Business Understanding (problem
+    formulation) and Data Preparation (crafting variables). Science
+    and technology concentrate in Modeling.
+  - Data is an asset with an acquisition cost; weigh cost vs.
+    benefit per source. Superficially similar problems (credit card
+    vs. Medicare fraud) can demand different task types because the
+    data differ (reliable labels vs. none).
+  - Leakage: a variable that predicts the target only because it
+    would not be known until the target is. Watch for it because
+    prep is done on historical data.
+  - Evaluate in the lab first, then against the business goal, then
+    (carefully) in vivo with a control group. High lab accuracy can
+    still be economically infeasible (false alarms).
+  - Deployment ranges from production code to a sheet of paper
+    taped to a printer. "Over the wall" handoffs are risky; involve
+    engineers early.
+  - Underinvested stages (Victor's notes): Business Understanding
+    and Deployment, the two that decide whether anything was
+    delivered.
+  - Managing it as a software project: Part 3.
+
+================================================================
+6. QUIZ-SAFE FACTS
+================================================================
+  - CRISP-DM stands for Cross Industry Standard Process for Data
+    Mining. Book citation: Shearer, 2000. Victor's notes only:
+    dates from 1999; tool- and industry-agnostic.
+  - Six stages in order: Business Understanding, Data
+    Understanding, Data Preparation, Modeling, Evaluation,
+    Deployment.
+  - Figure 2-2 two-way arrows: Business Understanding <-> Data
+    Understanding; Data Preparation <-> Modeling. Shortcut arrow:
+    Evaluation -> Business Understanding.
+  - Credit card fraud has reliable labels (supervised); Medicare
+    fraud does not (unsupervised: profiling, clustering, anomaly
+    detection, co-occurrence grouping).
+  - Leak examples: total pages visited in a session (Kohavi et al.
+    2000); item categories or tax paid for "big spender" (Kohavi &
+    Parekh 2003). Leakage reference: Kaufman et al. 2012.
+  - A detection model can exceed 99% accuracy in the lab and still
+    fail on false-alarm cost in the business context.
+  - Two reasons to deploy the mining system itself: the world
+    changes faster than the team can adapt; too many modeling tasks
+    to curate by hand.
+  - Printer-rules deployment: rules taped to the side of the
+    printers (Evans & Fisher 2002).
+  - Maxim: "Your model is not what the data scientists design, it's
+    what the engineers build."
+  - Data science engineers: software engineers with expertise in
+    both production systems and data science.
+  - Evaluation-in-deployment and fail-safe design reference: Raeder
+    et al. 2012. Randomized experiment lessons: Kohavi et al. 2007,
+    2009, 2012.

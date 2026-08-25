@@ -1,0 +1,149 @@
+The kNN Method for Regression Tasks: Study Guide
+Course: Applied Predictive Modeling (CMPINF-2120)
+Source: The kNN method for regression tasks lecture transcript
+
+================================================================
+1. REQUIREMENTS
+================================================================
+kNN for regression needs three things:
+  - A value of k (how many neighbors to consult).
+  - Points in a multidimensional space. Each point has
+    coordinates AND an associated value.
+  - A distance function.
+
+KEY TERMS
+  - k-nearest neighbors (kNN): predicts for a new point by
+    looking at the k points closest to it in the data.
+  - Regression: a supervised task where the thing predicted is a
+    numeric value (added definition).
+  - Distance function: a rule for measuring how far apart two
+    points are, e.g. Euclidean distance (added definition):
+      d(i,k) = sqrt( (x_i - x_k)^2 + (y_i - y_k)^2 )
+
+================================================================
+2. THE ONE KEY DIFFERENCE FROM CLASSIFICATION
+================================================================
+  - Classification kNN: each point carries a LABEL (a category).
+  - Regression kNN: each point carries a VALUE (a number).
+  - k has NO restriction here. Regression averages, so vote ties
+    are not an issue. (Added, from the classification lesson: k
+    was chosen there to avoid ties in the vote, e.g. not a
+    multiple of the number of classes.)
+
+KEY TERMS
+  - Label: the category assigned to a point in a classification
+    task (added definition).
+  - Classification: a supervised task where the thing predicted
+    is a category, not a number (added definition).
+
+================================================================
+3. THE ALGORITHM
+================================================================
+For every new point:
+  - Find its k closest neighbors using the distance function.
+  - Predict the new point's value as the AVERAGE of the
+    neighbors' values.
+
+================================================================
+4. WORKED EXAMPLE: HOUSING DATA
+================================================================
+Setup:
+  - Each row is a house: square feet, year built, sale price.
+  - Plot: x = square feet, y = year built, each point labeled
+    with its sale price.
+  - New point (red): 2000 sq ft, built 1999. Predict the price.
+  - k = 4.
+
+Steps:
+  - Find the 4 nearest neighbors to the red point (circled in
+    red on the plot, highlighted yellow in the table).
+  - Neighbor prices: 480, 400, 370, 410.
+  - Average: (480 + 400 + 370 + 410) / 4 = 1660 / 4 = 415.
+  - Prediction for the new house: 415.
+  - Price units are not stated in the transcript.
+
+================================================================
+5. EVALUATING THE MODEL: TRAIN/TEST SPLIT
+================================================================
+General technique (covered more later in the course):
+  - Randomly split the data set into two subsets.
+  - Training data: the bulk, typically ~80%. Used to "train" the
+    algorithm; for kNN, this is the pool neighbors are drawn
+    from.
+  - Test data: typically ~20%. Pretend the result is unknown
+    (mask it), predict it with the algorithm, then unmask and
+    compare prediction to the known value.
+
+KEY TERMS
+  - Train/test split: dividing data so the model is built on one
+    part and scored on a part it has never seen.
+  - Training data: the subset used to fit or build the model.
+  - Test data: the held-out subset used only to measure
+    performance.
+  - Ground truth: the real, known value being predicted, hidden
+    during prediction and revealed for comparison.
+  - Masking: hiding the true value of a test point so the model
+    must predict it.
+
+================================================================
+6. EVALUATION METRICS
+================================================================
+Classification metrics (all "covered later in the course"):
+  - Count false positives and false negatives.
+  - Precision, recall, F1 score.
+
+KEY TERMS (added definitions; the transcript names but does not
+define these)
+  - False positive: predicting the positive class when the truth
+    is negative.
+  - False negative: predicting the negative class when the truth
+    is positive.
+  - Precision: of the points predicted positive, the fraction
+    that truly are positive.
+  - Recall: of the points that truly are positive, the fraction
+    the model caught.
+  - F1 score: the harmonic mean of precision and recall, a single
+    number balancing the two.
+
+Regression metrics (more numerical in nature):
+  - Notation: p_i = masked ground truth for measurement i,
+    q_i = predicted value for measurement i, n = number of
+    measurements.
+  - Mean absolute error (MAE): absolute difference between truth
+    and prediction for each point, summed, divided by n.
+      MAE = (1/n) * sum_i |p_i - q_i|
+  - Root mean squared error (RMSE): square each difference, sum
+    the squares, divide by n, take the square root.
+      RMSE = sqrt( (1/n) * sum_i (p_i - q_i)^2 )
+  - In a sentence: MAE averages raw error sizes; RMSE squares
+    first, so large errors count more (added).
+
+================================================================
+7. KEY TAKEAWAYS
+================================================================
+  - kNN regression = same neighbor search as classification, but
+    predict the AVERAGE of neighbor values instead of a majority
+    vote on labels (majority vote: added, from the classification
+    lesson).
+  - Points carry values, not labels. k is unrestricted.
+  - Housing example: k = 4, neighbors 480/400/370/410, prediction
+    415.
+  - Evaluate by random train/test split (~80/20), mask test
+    results, predict, compare to ground truth.
+  - Regression scoring: MAE and RMSE. Classification scoring:
+    false positives/negatives, precision, recall, F1.
+
+================================================================
+8. QUIZ-SAFE FACTS
+================================================================
+  - Three requirements: k, points with coordinates and values, a
+    distance function.
+  - Regression kNN predicts the average of the k nearest
+    neighbors' values.
+  - Key difference from classification: values instead of labels.
+  - No restriction on k for regression.
+  - Example prediction: 2000 sq ft, built 1999, k = 4 gives 415.
+  - Typical split: ~80% training, ~20% test, chosen randomly.
+  - MAE = (1/n) * sum |p_i - q_i|.
+  - RMSE = sqrt( (1/n) * sum (p_i - q_i)^2 ).
+  - p_i = masked ground truth, q_i = prediction, n = count.
