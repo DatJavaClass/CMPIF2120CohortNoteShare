@@ -11,6 +11,7 @@ The notes are organized by module:
 
 - `Cliff Jumper Notes/` (each module's notes woven into one connected lesson)
 - `Cliff Notes Module 01/` (the applied predictive modeling roadmap: supervised vs unsupervised learning, classification vs regression, the kNN method for classification and for regression, train/test splits and MAE/RMSE, plus the Chapter 2 reading in three parts: data mining tasks, the CRISP-DM process, and the neighboring analytics techniques)
+- `Cliff Notes Module 02/` (data preprocessing and what it fixes: the Pitt Smart Living bus data, attribute and data set types, the text pipeline, missing data and outliers. Summary statistics and histograms: mean, median, mode, quartiles, variance, equal-width and equal-height buckets. Numerical transforms: standardization, min-max, and robust scaling. Categorical encoding: label, ordinal, and one-hot, with the Titanic notebooks)
 
 ## Contributors
 
