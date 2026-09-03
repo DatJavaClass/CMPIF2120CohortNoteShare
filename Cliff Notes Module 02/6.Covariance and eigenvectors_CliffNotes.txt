@@ -1,0 +1,401 @@
+1. FROM SPREAD TO VARIANCE
+  - Video 1 (the linear algebra primer) projected the penguin
+    cloud onto a line and eyeballed how spread out the projected
+    points were. The widest direction was found by hand, trying a
+    few angles and picking the best.
+  - This video does it in an automated way. The data's own
+    covariance hands you the widest direction, through
+    eigenvectors. That direction is the first principal component.
+  - First change: "spread" becomes "variance." Spread is the
+    visual thing, variance is the mathematical thing.
+  - KEY TERM: variance (of a projection): the average squared
+    distance of the projected points from their mean. Bigger
+    variance means more spread along that direction. The Video 1
+    question becomes precise: which direction has the maximum
+    projected variance?
+  - The code in this video only generates the figures. You do not
+    need to understand it to follow the material.
+
+2. VARIANCE AND COVARIANCE, BY HAND
+  - KEY TERM: variance of one feature: the average squared
+    deviation from its mean. Compute the mean (x bar), subtract it
+    from every value, square each difference, sum them, divide by
+    n. One number for how spread out x is.
+  - KEY TERM: covariance of two features: the average of the
+    product of their deviations. For each row, (x minus x bar)
+    times (y minus y bar), then sum and divide by n. It measures
+    how the two move together.
+      Positive: when x sits above its mean, y tends to sit above
+        its mean too (and below together).
+      Negative: one high while the other is low.
+      Near zero: unrelated, no shared pattern.
+  - The covariance of a feature with itself is its variance. Put
+    x in for y and the product becomes a square. This is exactly
+    why the covariance matrix (section 4) has variances on its
+    diagonal and covariances off it.
+  - Why the product of deviations works (added explanation): the
+    product is positive only when both deviations have the same
+    sign. Rows where both are above the mean, or both below,
+    push the sum up. Rows where the signs disagree pull it down.
+    Rows where either sits at its mean contribute nothing. The
+    average of all that is a single number that says whether the
+    two features lean the same way.
+  - An example. Five days at a lemonade stand, daily high in
+    Fahrenheit and cups sold:
+      temp: 68, 74, 80, 86, 92 (mean 80)
+      cups: 31, 40, 52, 57, 70 (mean 50)
+      temp deviations: -12, -6, 0, 6, 12
+      cups deviations: -19, -10, 2, 7, 20
+      squared temp deviations sum to 360, so var(temp) = 360 / 5
+        = 72.0
+      squared cups deviations sum to 914, so var(cups) = 914 / 5
+        = 182.8
+      products of deviations: 228, 60, 0, 42, 240, sum 570, so
+        cov(temp, cups) = 570 / 5 = 114.0
+    Every product came out zero or positive: hot days sell more
+    cups. The covariance is large and positive.
+
+3. POPULATION FORM VS SAMPLE FORM
+  - The lecture divides by n. This is called the population form,
+    used for a clean picture.
+  - KEY TERM: sample form: the same formulas with n minus 1 in
+    the denominator instead of n. The idea, as the professor puts
+    it, is that you assume you already took one out. Most of the
+    mathematical support in Python, including NumPy's np.cov,
+    computes the sample form by default.
+  - The distinction does not change any of the geometry that
+    follows. Every entry scales by the same factor n / (n - 1),
+    so the ellipse keeps its shape and the eigenvectors (section
+    8) keep their directions (added explanation). Only the
+    eigenvalues scale.
+  - In the lemonade example, n / (n - 1) = 5 / 4 = 1.25.
+    np.cov(temp, cups) returns 90.0, 142.5, 228.5 where the
+    population form gave 72.0, 114.0, 182.8. Each number is 1.25
+    times bigger. np.cov(..., bias=True) gives the population
+    form.
+
+4. THE COVARIANCE MATRIX
+  - KEY TERM: covariance matrix: for two features, a 2 by 2
+    matrix that packs together how each feature varies and how
+    they vary together. Written C:
+      row 1: var(x), cov(x, y)
+      row 2: cov(x, y), var(y)
+    The variances sit on the diagonal (top-left to bottom-right)
+    and the covariance sits in both off-diagonal spots, so the
+    matrix is symmetric (added definition: a matrix equal to its
+    own mirror image across the diagonal).
+  - For the lemonade data:
+      C = [[72.0, 114.0],
+           [114.0, 182.8]]
+  - It has a shape you can see: the data ellipse. A tilted,
+    stretched ellipse means the two features are correlated.
+  - KEY TERM: data ellipse: the ellipse drawn from the covariance
+    matrix, centered on the mean of the cloud, whose axes and
+    tilt show the directions and amount of spread (added
+    definition). See the figure produced by cell 6 of
+    6.1Covariance_eigenvectors.ipynb for the penguin version.
+
+5. WHY A MATRIX OF FOUR NUMBERS IS AN ELLIPSE
+  - The obvious objection: a 2 by 2 matrix has four numbers, how
+    is that an ellipse? Answer: the four numbers do not become an
+    ellipse directly. They define a formula, and the ellipse is
+    the set of points where that formula equals a fixed constant
+    c.
+  - The formula: take any point (x, y) measured from the center,
+    and compute [x y] times C inverse times [x y] as a column.
+    Setting that equal to c is the equation of an ellipse centered
+    at the origin. Bigger c, bigger ellipse. The two ellipses in
+    the notebook figures are drawn at 1 and 2 standard deviations,
+    which are just two choices of c.
+  - KEY TERM: matrix inverse (C inverse, written with a superscript
+    -1): the matrix that undoes C, so C times C inverse is the
+    identity matrix, the matrix equivalent of the number 1 (added
+    definition). Dividing by a matrix is not defined, so
+    multiplying by the inverse is how you divide by the spread.
+  - Multiplying the formula out gives a mix of x squared, y
+    squared, and xy terms. The xy term is what tilts the ellipse
+    (added).
+  - What the quantity means in practice: it is a distance measured
+    in units of the data's own spread. One step out along a wide
+    direction counts the same as a small step along a narrow one.
+    The ellipse is "all the points equally far from the center,
+    according to the data."
+  - An example with the lemonade C. Its inverse is
+      [[1.1039, -0.6884],
+       [-0.6884, 0.4348]]
+    and plugging in a few points from the center gives:
+      (6, 5): 9.30
+      (12, 20): 2.43
+      (6, -5): 91.91
+      (0, 10): 43.48
+    The point (12, 20) is much farther from the center than
+    (6, -5) by a ruler, yet it scores far smaller. It lies along
+    the long axis of the cloud, where the data normally reaches.
+    The point (6, -5) runs against the grain (hot day, fewer
+    cups), so the data treats it as far out. That is the whole
+    idea of measuring distance by the data's spread.
+  - The link to what comes next: the eigenvectors of C are the
+    ellipse's axes (which way it points), and the eigenvalues are
+    how long those axes are (how far it stretches each way).
+    Finding the eigenvectors is the same as finding the ellipse's
+    natural directions.
+
+6. WHAT EACH ENTRY DOES TO THE ELLIPSE
+  - Each entry has a visible job. The diagonal entries set how far
+    the ellipse stretches along each axis. The off-diagonal
+    covariance tilts it.
+      cov = 0: the features are unrelated. With var(x) = var(y)
+        as well: a perfectly round data ellipse.
+      var(x) bigger than var(y): stretches sideways.
+      var(y) bigger than var(x): stretches upward.
+      cov not zero: adds a tilt. The two features are correlated.
+  - See the four-panel figure produced by cell 9 of
+    6.1Covariance_eigenvectors.ipynb, which draws each case from an
+    illustrative covariance matrix rather than the penguin data.
+  - Reading the lemonade matrix this way: var(cups) = 182.8 is
+    bigger than var(temp) = 72.0, so the ellipse is taller than
+    it is wide, and cov = 114.0 is large and positive, so it tilts
+    up and to the right.
+
+7. VARIANCE AS A FUNCTION OF DIRECTION
+  - Instead of trying a few directions by hand, sweep through all
+    of them and compute the projected variance at each angle. The
+    result is a smooth curve with a single clear peak: the
+    direction of maximum spread. See the two-panel figure from
+    cell 11 of 6.1Covariance_eigenvectors.ipynb.
+  - KEY TERM: projected variance: the variance of the numbers you
+    get by projecting every point onto one direction (the dot
+    product of each centered point with a unit vector along that
+    direction) (added definition). It is a plain number you can
+    compute for any angle, which is what makes the sweep possible.
+  - The sweep for the lemonade data (population variance of the
+    projection, angle measured from the temp axis):
+      0 degrees: 72.0 (this is just var(temp))
+      30 degrees: 198.4
+      45 degrees: 241.4
+      58 degrees: 254.1 (the peak)
+      60 degrees: 253.8
+      90 degrees: 182.8 (this is just var(cups))
+      120 degrees: 56.4
+      148 degrees: 0.65 (the floor)
+    At 0 and 90 degrees you get the diagonal entries of C back,
+    because projecting onto an axis is the same as reading that
+    feature. Every other angle mixes the two, and the mixing is
+    where the covariance earns its keep.
+  - The point of the sweep is that you no longer have to draw
+    anything. You can compute it, plot it if you want to
+    understand it, and read off the peak.
+
+8. EIGENVECTORS AND EIGENVALUES: THE PEAK WITHOUT THE SWEEP
+  - The payoff: you do not have to sweep at all. The problem has
+    a mathematical solution, and that solution is an eigenvector.
+  - KEY TERM: eigenvector (of C): a special direction that C
+    leaves pointing the same way. Multiplying it by C only
+    stretches it, never rotates it. Most directions get knocked
+    askew by C. These hold their heading.
+  - KEY TERM: eigenvalue (lambda): the stretch factor for that
+    eigenvector. Here lambda is the variance along that
+    eigenvector.
+  - The equation: C v = lambda v. C is the covariance matrix, v
+    is the eigenvector, lambda is the eigenvalue. Read it as "C
+    acting on v gives back v, just scaled."
+  - The top eigenvector points along the maximum variance (the
+    peak of the sweep). The rest are perpendicular to it. Because
+    C is symmetric, the eigenvectors come out orthonormal:
+    perpendicular and unit length, the terms from Video 1.
+  - KEY TERM: orthonormal: a set of vectors that are all
+    perpendicular to each other (dot product zero) and all of
+    length one (from the primer, restated here).
+  - How to compute them is well beyond this course. The professor
+    only needs you to know the property and what it buys you.
+    In practice the computer does it in one call.
+  - The lemonade numbers. np.linalg.eigh(C) on the population
+    matrix gives, sorted largest first:
+      eigenvalues: 254.15 and 0.65
+      top eigenvector: (0.5305, 0.8477)
+      second eigenvector: (-0.8477, 0.5305)
+    Check the claims against section 7:
+      254.15 is exactly the peak of the sweep, and 0.65 is the
+        floor. The eigenvalues are the max and min projected
+        variances.
+      The top eigenvector sits at an angle of 58 degrees, the
+        angle where the sweep peaked. atan2(0.8477, 0.5305) gives
+        57.96 degrees.
+      The two eigenvectors have dot product 0 and length 1 each.
+        Orthonormal, as promised.
+      The eigenvalues sum to 254.8, which is 72.0 + 182.8, the
+        trace of C (added definition: the sum of the diagonal
+        entries). Added observation: the total variance is
+        conserved, it just gets redistributed between the new
+        axes.
+  - Watching the "stretch, never rotate" property in numbers:
+      C times (0.5305, 0.8477) = (134.83, 215.43), which is
+        254.15 times (0.5305, 0.8477). Same heading, longer.
+      C times (1, 0), which is not an eigenvector, gives
+        (72, 114), a vector pointing at 57.7 degrees. The matrix
+        swung the temp axis almost onto the top eigenvector. That
+        is what "knocked askew" looks like.
+  - Eigenvector sign is arbitrary (added note). (0.5305, 0.8477)
+    and (-0.5305, -0.8477) are the same line. Different libraries,
+    or the same library on different machines, can return either
+    one. Compare directions, not signs.
+  - On the penguin data, PC1 is the orange arrow and PC2 the blue
+    arrow in the figure from cell 13 of
+    6.1Covariance_eigenvectors.ipynb. PC1 is the direction the
+    data says is best, found in one step from the covariance
+    matrix, no guessing.
+  - The callback to Video 1: the by-hand direction was not quite
+    the best. PC1 is. And PC2 is tiny, and therefore not as
+    important: flipper length and body mass are so strongly
+    correlated that almost all the variation lives along a single
+    direction. Hold that thought, it is what makes dimensionality
+    reduction possible.
+  - Code for the whole computation, on the lemonade data:
+
+      import numpy as np
+
+      temp = np.array([68., 74., 80., 86., 92.]) ## daily high, F
+      cups = np.array([31., 40., 52., 57., 70.]) ## cups sold
+      pts = np.column_stack([temp - temp.mean(), cups - cups.mean()])
+      C = np.cov(pts.T, bias=True) ## population form, divides by n
+      evals, evecs = np.linalg.eigh(C) ## symmetric, ascending order
+      order = np.argsort(evals)[::-1] ## largest first
+      evals, evecs = evals[order], evecs[:, order]
+      print(C, evals, evecs[:, 0], (pts @ evecs).var(axis=0), sep='\n')
+
+    Output:
+
+      [[ 72.  114. ]
+       [114.  182.8]]
+      [254.14841222   0.65158778]
+      [0.53052505 0.84766926]
+      [254.14841222   0.65158778]
+
+    np.linalg.eigh is the routine for symmetric matrices. It
+    returns eigenvalues in ascending order, so the sort flips
+    them to largest first, matching the PC1, PC2 convention. The
+    last printed line is explained in section 9.
+
+9. ROTATING INTO THE EIGEN-BASIS
+  - KEY TERM: eigen-basis: using the eigenvectors as the new axes
+    of the plot (added definition). "Basis" is the linear algebra
+    word for a set of axes.
+  - If you use the eigenvectors as your new axes, the cloud
+    straightens out. The tilt disappears. PC1 becomes the
+    horizontal axis, PC2 the vertical. See the before and after
+    figure from cell 16 of 6.1Covariance_eigenvectors.ipynb.
+  - KEY TERM: principal component (PC1, PC2): the new axes. PC1
+    is the direction of maximum variance, PC2 the next, and so on.
+    PC1 is a composition of the original dimensions, not a direct
+    one-to-one mapping to flipper length or body mass.
+  - In the new coordinates the two axes are decorrelated. All the
+    leftover spread is neatly separated from the main direction.
+  - KEY TERM: decorrelated: the covariance between the new
+    coordinates is zero (added definition). The tilt was the
+    covariance, and the rotation removed it.
+  - Mechanically the rotation is one matrix multiply: centered
+    points times the eigenvector matrix. Each new coordinate is
+    the dot product of the point with one eigenvector, which is
+    exactly the projection from Video 1.
+  - The lemonade data rotated. The five points become:
+      (-22.47, 0.09)
+      (-11.66, -0.22)
+      (1.70, 1.06)
+      (9.12, -1.37)
+      (23.32, 0.44)
+    The first coordinate runs from -22 to +23. The second barely
+    leaves zero. The covariance matrix of the rotated points is
+      [[254.15, 0.0],
+       [0.0, 0.65]]
+    Diagonal, with the eigenvalues on it. The off-diagonal
+    covariance is gone, and the variances of the new axes are
+    the eigenvalues. That is what the last print line in the
+    section 8 code shows.
+
+10. ONE CAUTION FOR LATER: SCALE MATTERS
+  - Everything above was drawn on axes the professor chose:
+    flipper in millimeters, body mass in hundreds of grams. The
+    covariance matrix, and therefore the eigenvectors, depend on
+    those units. Change the scale of an axis and the best
+    direction can tilt.
+  - An example. Count the lemonade cups in dozens instead of
+    single cups (divide by 12). The temperature column is
+    untouched. The population covariance matrix becomes
+      [[72.0, 9.5],
+       [9.5, 1.27]]
+    and the top eigenvector swings from 58 degrees to about 7.5
+    degrees. Same stand, same five days, and the "best direction"
+    is now nearly the temperature axis, because temperature is
+    numerically the biggest thing left. The data did not change.
+    The units did.
+  - That is why, before running PCA on real data with very
+    different units, the features get standardized first. That is
+    the subject of a later video. For now the flag is planted:
+    scaling changes the answer.
+
+11. WHAT WE HAVE, AND WHAT IS NEXT
+  - We can now name the widest direction without guessing. It is
+    the top eigenvector of the covariance matrix, and its
+    eigenvalue tells how much variance lives along it.
+  - This procedure, find the eigenvectors of the covariance
+    matrix and use them as new axes, is Principal Component
+    Analysis. The next video gives it its name and explains why
+    we use it: turning many correlated features into a few
+    informative ones.
+
+12. KEY TAKEAWAYS
+  - Spread became variance. Variance of one feature: average
+    squared deviation from the mean. Covariance of two: average
+    product of deviations. cov(x, x) = var(x).
+  - Population form divides by n. Sample form divides by n - 1
+    and is what np.cov does by default. Same geometry either way.
+  - Covariance matrix: variances on the diagonal, covariance off
+    it. Symmetric. Drawn, it is the data ellipse.
+  - Diagonal entries stretch the ellipse along the axes.
+    Covariance tilts it. Tilt means correlated.
+  - Projected variance is a curve over angle with one peak. The
+    peak direction is the top eigenvector of C. Its eigenvalue is
+    the variance there. C v = lambda v.
+  - Eigenvectors of a symmetric matrix are orthonormal. Using
+    them as axes straightens the cloud and decorrelates the
+    coordinates.
+  - Units change the covariance matrix, so units change the
+    eigenvectors. Standardize before PCA on mixed-unit data.
+
+13. QUIZ-SAFE FACTS
+  - Variance of a feature: average squared deviation from its
+    mean. Covariance: average product of two features'
+    deviations.
+  - Covariance positive: features rise above their means
+    together. Negative: one high, other low. Near zero:
+    unrelated.
+  - Covariance of a feature with itself equals its variance.
+  - Population form divides by n. Sample form divides by n - 1.
+    NumPy's np.cov uses the sample form by default.
+  - The 2 by 2 covariance matrix: var(x) and var(y) on the
+    diagonal, cov(x, y) in both off-diagonal positions.
+  - The covariance matrix drawn as a shape is the data ellipse.
+    A tilted, stretched ellipse means the features are correlated.
+  - The ellipse is the set of points where [x y] C inverse [x y]
+    equals a constant c.
+  - Equal variances and zero covariance: round ellipse. Larger
+    var(x): stretches sideways. Larger var(y): stretches upward.
+    Nonzero covariance: tilt.
+  - The eigenvectors of C are the ellipse's axes. The eigenvalues
+    are how long those axes are.
+  - An eigenvector is a direction that C only stretches, never
+    rotates. The stretch factor is the eigenvalue. C v = lambda v.
+  - The top eigenvector points along maximum variance. Its
+    eigenvalue is the variance along it. The other eigenvectors
+    are perpendicular.
+  - Because C is symmetric, its eigenvectors are orthonormal.
+  - Using the eigenvectors as new axes: PC1 horizontal, PC2
+    vertical, cloud straightens, axes decorrelated.
+  - PC1 is a composition of the original features, not one of
+    them.
+  - In the penguin slice, PC2 is tiny because flipper length and
+    body mass are strongly correlated.
+  - Scaling changes the answer. The covariance matrix and the
+    eigenvectors depend on the units, so standardize first.
+  - Finding the eigenvectors of the covariance matrix and using
+    them as axes is Principal Component Analysis.

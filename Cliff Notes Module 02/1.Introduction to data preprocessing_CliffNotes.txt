@@ -1,211 +1,227 @@
-Introduction to Data Preprocessing: Study Guide
-Course: Applied Predictive Modeling (CMPINF-2120)
-Source: Introduction to data preprocessing lecture transcript
+1. WHY PREPROCESS: THE PITT SMART LIVING PROJECT
+  - The lecture opens with a real project the professor ran as
+    principal investigator: the Pitt Smart Living Project, funded
+    by the National Science Foundation. Tagline: building a smart
+    city economy and information ecosystem to motivate
+    cross-social transportation behavior.
+  - The motivating problem: you are at a bus stop, the app says
+    two minutes, the bus arrives full, and you either miss it or
+    ride crammed.
+  - The project goal: an app that notifies commuters when their
+    bus will be full. That requires high-quality real-time
+    information. Two add-ons on top of the notification:
+      Incentives to take a later bus (a coffee discount at the
+        corner store, discounts on future tickets). The rider
+        relaxes 15 to 20 minutes and boards a less crowded bus,
+        which also helps the people already on the first bus.
+      Alternative multi-modal routing (shared bikes, walk to a
+        different stop and catch a different bus).
+  - COVID disrupted the project, but the team collected a lot of
+    data and built a lot of models from it.
+  - KEY TERM: preprocessing: the cleanup and reshaping you do to
+    raw data before modeling, so the model sees data that is
+    complete, consistent, and comparable. (added definition)
 
-================================================================
-1. WHY PREPROCESS: THE PITT SMART LIVING EXAMPLE
-================================================================
-  - KEY TERM: data preprocessing: cleaning and transforming raw
-    data into a form a model can use (added definition).
-  - The lecturer was principal investigator on the Pitt Smart
-    Living Project, funded by the National Science Foundation.
-    Tagline: building a smart city economy and information
-    ecosystem to motivate pro-social transportation behavior.
-      - Transcript says "cross-social", read as pro-social.
-  - Motivating problem: a rider's app says the bus arrives in
-    two minutes. It arrives full. Riders cannot board, or ride
-    crammed.
-  - Project goal: an app that notifies commuters when their bus
-    will be full. Needs high-quality real-time data.
-  - Two planned add-ons:
-      - Incentives to take a later bus (discount at the corner
-        coffee store, discounts on future tickets). Rider relaxes
-        15-20 minutes, then boards a less crowded bus. The first
-        bus gets less crowded too.
-      - Multi-modal routing: take a shared bike, or go to another
-        stop and catch a different bus.
-  - Disrupted a little by COVID, but yielded a lot of data and
-    a lot of models.
+2. WHAT DIRTY DATA LOOKS LIKE
+  - The lecture shows a map of bus stop data (see the slide with
+    the red and green push pins). Red pins are instances where a
+    bus stopped somewhere that could not be matched to a proper
+    bus stop for that route. Green pins are the actual bus stops.
+  - Two different causes of the same symptom:
+      Human error. One line of red pins runs down a completely
+        different bus route. The Port Authority explained that
+        someone was supposed to manually change the route the bus
+        was assigned to and did not. A similar parallel track
+        appears above the correct 61C line.
+      GPS error. Zoomed into downtown, buses appear in the
+        water. Nobody coded a route through the river. The GPS
+        could not get a proper fix.
+  - KEY TERM: urban canyon effect: GPS devices need line of sight
+    to at least three satellites to get a proper fix. Tall
+    skyscrapers downtown block that line of sight, so positions
+    drift. This is a technology failure, not a data entry one.
+  - How do we know the river data is wrong? If there were buses
+    in the river, there would be a news story. (There was a bus
+    in a sinkhole in Pittsburgh in October 2018, and that made
+    national news and memes.) The lesson: domain knowledge and
+    common sense are part of validation. (added note)
 
-================================================================
-2. WHAT THE RAW DATA LOOKED LIKE
-================================================================
-  - Map of a small slice of the data. Red push pins: places a bus
-    stopped that could not be matched to the proper bus stop for
-    that bus. Green: the actual bus stops.
-  - Error source 1, human error. The Port Authority explained
-    that one line of red pins runs down a completely different
-    route: someone was supposed to manually change the bus's
-    route and did not. A similar parallel line of red pins sits
-    just above the correct 61C route.
-  - Error source 2, GPS error. Zoomed into downtown, the data
-    shows buses in the water. Nobody coded that route wrong. The
-    technology could not detect the true location.
-      - KEY TERM: urban canyon effect: GPS needs line of sight to
-        at least three satellites for a proper fix. Downtown
-        skyscrapers block that line of sight.
-      - Transcript says "beaded by tall skyscrapers", read as
-        impeded.
-      - The lecture says three satellites. A 3D fix uses four
-        (added). Quote the lecture's number on a quiz.
-  - Sanity check: if buses were really in the river, it would be
-    news. Pittsburgh's October 2018 bus in a sinkhole made
-    national news and memes. No river stories, so the water
-    points are bad data.
+3. TYPES OF ATTRIBUTES
+  - KEY TERM: attribute: one measured property of a record, a
+    column in the table. Also called a feature or variable.
+    (added definition)
+  - String (categorical) attributes come in three flavors:
+      KEY TERM: nominal: strings with no order among them.
+        Example (added): color, or the port a passenger boarded at.
+      KEY TERM: binary: one of two options. Example (added):
+        yes or no.
+      KEY TERM: ordinal: strings with an implied order. The
+        lecture's example: small, medium, large, extra large.
+  - Numeric attributes come in two flavors:
+      KEY TERM: discrete: a finite or countably infinite set of
+        values. Examples: zip codes, counts. Usually stored as
+        integers. A 0/1 binary attribute can also be treated as
+        discrete.
+      KEY TERM: continuous: real numbers as values. Examples:
+        temperature, height, weight.
+  - Practical caveat from the lecture: a computer cannot store an
+    infinite number of digits, so continuous values are recorded
+    with a fixed number of digits, typically as floating-point
+    variables. There is some sensitivity in how much accuracy you
+    get, but modern floating-point formats handle significant
+    accuracy.
+  - KEY TERM: floating-point: the binary number format computers
+    use for real numbers, storing a fixed number of significant
+    digits plus an exponent. (added definition)
 
-================================================================
-3. ATTRIBUTE TYPES
-================================================================
-  - KEY TERM: attribute: one recorded property of a data object,
-    a column in a table (added definition).
-  String attributes, three kinds:
-  - KEY TERM: nominal: categories with no order.
-  - KEY TERM: binary: one of two options.
-  - KEY TERM: ordinal: categories with an implied order, such as
-    small, medium, large, extra large.
-  Numeric attributes, two kinds:
-  - KEY TERM: discrete: a finite or countably infinite set of
-    values. Examples: zip codes, counts. Usually stored as
-    integers. A 0/1 binary attribute can be treated as discrete.
-  - KEY TERM: continuous: real-number values. Examples:
-    temperature, height, weight.
-      - A computer cannot store infinite digits, so continuous
-        values get a fixed number of digits, typically as
-        floating-point variables.
-      - KEY TERM: floating point: a number format holding a fixed
-        count of significant digits plus an exponent (added
-        definition).
-      - Modern floating-point formats handle significant
-        accuracy.
+4. TYPES OF DATASETS
+  - The lecture splits datasets into three categories: records,
+    ordered sets, and graphs.
+  - Record data:
+      KEY TERM: record data: each record has a fixed set of
+        attributes. Think of rows in a spreadsheet. The lecture's
+        slide shows ten records with a refund flag, marital
+        status, income, and a cheated flag.
+      KEY TERM: data matrix: record data where every attribute is
+        numeric. Represented as an m by n matrix, m rows (one per
+        object) and n columns (one per attribute). This is the
+        form most modeling algorithms want. (added note)
+      KEY TERM: document data: data that comes from text. Not
+        covered much in this course, but you should know it
+        exists. Preprocessing for text has three standard steps:
+          Remove stop words.
+          Convert everything to lowercase so matching ignores
+            case.
+          Stemming.
+      KEY TERM: stop words: very frequent words that carry little
+        meaning on their own, like "and", "the", and articles.
+      KEY TERM: stemming: reducing a word to its core so that
+        variants map to one term. The lecture's example: voted,
+        vote, votes, voting all become vote.
+      KEY TERM: term vector: after preprocessing, each document
+        becomes a vector with one component per term, and the
+        value is how many times that term appears in that
+        document.
+      KEY TERM: transaction data: think grocery store, a list of
+        products bought in one shopping trip. You could store it
+        as record data with one column per possible product, but
+        most cells would be empty, so that is not ideal. An
+        upcoming module covers transaction data.
+      KEY TERM: sparsity: the condition where most values in a
+        table are zero or empty. (added definition)
+  - Graph data:
+      KEY TERM: graph data: data where the relationships between
+        objects are the point (added definition). The lecture's
+        examples: a co-star graph (which actors appeared in the
+        same movie),
+        molecules in chemistry, and web pages linking to each
+        other. Many dedicated techniques exist for graph data.
+  - Ordered data:
+      KEY TERM: sequence data: ordered transactions or values
+        where predicting what comes next is the interesting
+        question. Number-sequence puzzles are the everyday
+        version. Genomic data is the famous case, not covered
+        much in this course.
+      KEY TERM: spatiotemporal data: data indexed by both place
+        and time (added definition). The lecture's example:
+        monthly land and ocean temperature over many months for
+        locations around the world.
+  - A term vector, for example. Three tiny documents, "the bus
+    was late", "late bus, late train", and "the train was early",
+    with "the" and "was" removed as stop words, produce this
+    table (one row per document, one column per term):
 
-================================================================
-4. DATA SET TYPES
-================================================================
-  Three categories: records, ordered sets, graphs.
+        bus  early  late  train
+      0   1      0     1      0
+      1   1      0     2      1
+      2   0      1     0      1
 
-  Records:
-  - KEY TERM: record data: every record has the same fixed set
-    of attributes. Think rows in an Excel spreadsheet.
-      - Lecture example: 10 records with refund (yes/no),
-        marital status, income, and whether the person cheated.
-      - Transcript says "marked as titles", read as marital
-        status.
-  - KEY TERM: data matrix: objects with a fixed set of numeric
-    attributes, stored as an m by n matrix. m rows, one per
-    object. n columns, one per attribute.
-  - KEY TERM: document data: data that comes from text. Not
-    covered much in this course. Preprocessing in section 5.
-  - KEY TERM: transaction data: the products bought in one
-    shopping trip (grocery store example). Storing it as record
-    data with one column per product is very sparse, so not
-    ideal. Covered in an upcoming module.
-      - KEY TERM: sparsity: most cells are empty or zero (added
-        definition).
+    Row 1 has a 2 under late because the word appears twice in
+    that document. That count is the whole idea.
 
-  Graphs:
-  - KEY TERM: graph data: objects plus the links between them
-    (added definition). Has its own set of data science and
-    predictive modeling techniques.
-  - Examples: a costar graph (actors linked by shared movies), a
-    molecule in chemistry, web pages and their links.
+5. TYPES OF PREPROCESSING
+  - The lecture lists the preprocessing jobs, simplest first:
+      Detect and handle missing data.
+      Detect and handle outliers.
+      Feature scaling and normalization on numerical values.
+      Feature engineering and transformation.
+      Encoding categorical variables.
+    The last three involve more processing and more math and are
+    covered in future lessons.
+  - Missing data, two simple options:
+      Delete the record that has the missing value.
+      If the record is too valuable to delete, predict the
+        missing value using the mean of everybody else for that
+        attribute.
+  - KEY TERM: imputation: filling a missing value with an
+    estimate such as the attribute's mean. (added definition)
+  - KEY TERM: outlier: a value that is clearly an exception to the
+    norm. You need good ways to detect them and handle them. The
+    simplest handling is to remove them. Other ways exist.
+  - KEY TERM: feature scaling: rescaling numeric attributes so
+    that attributes measured in different units become
+    comparable. (added definition)
+  - KEY TERM: feature engineering: building new attributes from
+    existing ones, or transforming existing ones, so the model
+    has better inputs to work with. (added definition)
+  - KEY TERM: encoding: mapping string categories to numbers so
+    an algorithm can consume them. (added definition)
+  - Missing data, for example. Five bus stops with rider counts,
+    two of them missing:
 
-  Ordered sets:
-  - KEY TERM: sequence data: ordered data where the task is
-    often to predict what comes next, like a number-sequence
-    puzzle. Sequences of transactions are one case.
-      - Transcript says "special order data", read as a special
-        kind of ordered data.
-  - Genomic data is a famous sequence type. Not covered much
-    here.
-  - KEY TERM: spatiotemporal data: values indexed by both place
-    and time. Example: monthly land and ocean temperature over
-    many months, for locations around the world.
+      import pandas as pd, numpy as np
+      df_r = pd.DataFrame({"stop": list("ABCDE"),
+                           "riders": [12, np.nan, 20, 16, np.nan]})
+      df_drop = df_r.dropna() ## option 1, delete records
+      m = df_r["riders"].mean() ## 16.0
+      df_fill = df_r.fillna({"riders": m}) ## option 2, impute
 
-================================================================
-5. DOCUMENT DATA PREPROCESSING
-================================================================
-  Lecture example: six one-line "documents" sized to fit a
-  slide. Pipeline:
-  - Remove stop words.
-      - KEY TERM: stop words: very frequent words like "and",
-        "the", and articles.
-  - Convert everything to lowercase so matching ignores case.
-  - KEY TERM: stemming: cut a word down to its core. "voted"
-    becomes "vote", so voted, vote, votes, and voting all map to
-    the same stem.
-      - Transcript says "leave its work at its core", read as
-        leave the word at its core.
-  - KEY TERM: term vector: each document becomes a vector with
-    one component per term, valued by how many times that term
-    appears in the document.
+    df_drop keeps stops A, C, and D. df_fill keeps all five and
+    writes 16.0 into B and E, since (12 + 20 + 16) / 3 = 16. Note
+    the trade: dropping loses two of five records, filling keeps
+    them but invents two values that sit exactly at the average,
+    which pulls the column's spread down.
 
-================================================================
-6. PREPROCESSING TASKS
-================================================================
-  - Missing data: detect it and handle it.
-      - Simplest: delete the record with the missing value.
-      - If the record is too valuable to delete: predict the
-        missing value using the mean of that attribute across
-        everybody else.
-      - KEY TERM: imputation: filling a missing value with an
-        estimate (added definition). The lecture describes mean
-        imputation.
-  - Outliers: detect them and handle them.
-      - KEY TERM: outlier: something clearly meant to be an
-        exception to the norm.
-      - Simplest handling: remove them. Other methods exist.
-  - Heavier tasks (more processing, more math), covered in
-    future lessons:
-      - KEY TERM: feature scaling and normalization: rescaling
-        numeric attributes onto a common range so one attribute
-        does not dominate (added definition).
-      - KEY TERM: feature engineering and transformation:
-        building new attributes or reshaping existing ones
-        (added definition).
-      - KEY TERM: encoding categorical variables: converting
-        string categories into numbers a model can consume
-        (added definition).
-
-================================================================
-7. KEY TAKEAWAYS
-================================================================
-  - Real data is dirty. The bus data had two independent error
-    sources: human error in route assignment, and GPS error from
-    the urban canyon effect.
-  - Verify a data-error theory against outside evidence (no news
-    story means no bus in the river).
+6. KEY TAKEAWAYS
+  - Real data is dirty for more than one reason. The bus data had
+    both human error (wrong route assigned) and GPS error
+    (urban canyon GPS drift). Different causes need different
+    fixes. (added note)
+  - Attributes: nominal, binary, ordinal for strings. Discrete,
+    continuous for numbers.
+  - Datasets: records (record data, data matrix, document data,
+    transaction data), graphs, ordered (sequences, genomic,
+    spatiotemporal).
   - Text preprocessing: stop words out, lowercase, stem, then
-    term vectors.
-  - Core preprocessing: handle missing data (delete or mean
-    impute), handle outliers (detect, often remove), then
-    scaling, feature engineering, and categorical encoding.
+    count into term vectors.
+  - Preprocessing jobs: missing data, outliers, scaling and
+    normalization, feature engineering, categorical encoding.
 
-================================================================
-8. QUIZ-SAFE FACTS
-================================================================
-  - Pitt Smart Living Project: NSF funded, lecturer was PI, goal
-    was an app warning commuters their bus will be full.
-  - Two add-ons: incentives to take a later bus (15-20 minute
-    wait), and multi-modal routing (shared bike, other stop).
-  - Map legend: red push pins = bus stops not matched to a
-    proper stop, green = real bus stops. Bus route named: 61C.
-  - Urban canyon effect: skyscrapers block GPS line of sight.
-    Lecture says at least three satellites are needed for a fix.
-  - Pittsburgh bus in a sinkhole: October 2018.
-  - String attribute types: nominal, binary, ordinal. Ordinal
-    example: small, medium, large, extra large.
-  - Numeric attribute types: discrete (zip codes, counts,
-    integers) and continuous (temperature, height, weight,
-    floating point).
-  - Three data set categories: records, ordered sets, graphs.
-  - Data matrix: m by n, m objects, n numeric attributes.
-  - Document pipeline: remove stop words, lowercase, stemming,
-    term vector of term counts.
-  - Transaction data stored as record data is sparse.
-  - Graph examples: costar graph, molecules, web page links.
-  - Missing data: delete the record, or fill with the attribute
-    mean.
-  - Outlier: clear exception to the norm. Simplest fix: remove.
-  - Deferred to future lessons: feature scaling and
-    normalization, feature engineering and transformation,
-    encoding categorical variables.
+7. QUIZ-SAFE FACTS
+  - Pitt Smart Living Project: NSF funded, professor was
+    principal investigator, goal was an app that tells commuters
+    when their bus will be full, plus incentives to wait and
+    multi-modal alternatives.
+  - Red push pins: places a bus stopped that could not be matched
+    to a proper bus stop. Green: the real stops.
+  - Buses in the river: GPS error from the urban canyon effect.
+    GPS needs line of sight to at least three satellites.
+  - Wrong-route line of red pins: human error, a manual route
+    change that was not made.
+  - String attribute types: nominal (no order), binary (two
+    options), ordinal (implied order, e.g. S, M, L, XL).
+  - Numeric attribute types: discrete (finite or countably
+    infinite, e.g. zip codes, counts, stored as integers) and
+    continuous (real numbers, e.g. temperature, height, weight,
+    stored as floating point).
+  - Data matrix: m by n, m rows one per object, n columns one per
+    attribute.
+  - Document preprocessing: remove stop words, lowercase, stem.
+    Result: a term vector per document with term counts.
+  - Transaction data as one column per product is sparse.
+  - Graph data examples: co-star graph, molecules, web page links.
+  - Sequence data example: genomic data. Spatiotemporal example:
+    monthly land and ocean temperature by location.
+  - Simplest missing-data handling: delete the record, or fill
+    with the attribute mean.
+  - Simplest outlier handling: remove it.

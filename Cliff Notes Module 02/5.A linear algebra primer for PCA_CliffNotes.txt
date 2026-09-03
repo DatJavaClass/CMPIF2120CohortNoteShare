@@ -1,0 +1,391 @@
+1. WHAT THIS VIDEO IS FOR
+  - First of a five video series on principal component analysis
+    (PCA). Textbook treatments of PCA are heavy on math. This
+    series builds the intuition through linear algebra
+    fundamentals, visuals on real data, and a slow pace.
+  - The notebook (5.1.geometry_of_data.ipynb) is mostly plotting
+    code. Every code cell carries a note that it exists only to
+    generate the figure and that understanding it is not
+    required. The concepts are the deliverable, not the code.
+  - KEY TERM: principal component analysis (PCA): a method that
+    finds the directions along which a dataset varies the most,
+    so the data can be described with fewer numbers while losing
+    as little information as possible. Defined properly in the
+    later videos. (added definition)
+  - KEY TERM: linear algebra: the math of vectors and matrices,
+    which is to say the math of tables of numbers and the
+    arrows they can be drawn as. (added definition)
+  - The thread to follow through this whole note (added): a row
+    of data is a point, a point is an arrow, an arrow can be
+    measured along any direction, and some directions capture
+    more of the data's spread than others. PCA is about finding
+    those directions. This video gets you to "some directions
+    are better" by hand. Video 2 automates it.
+
+2. A DATA POINT IS A THING WITH MEASUREMENTS
+  - In applied predictive modeling, a data point is just some
+    measurements of a real object. One, two, or more attributes.
+  - The warm-up data is vehicles with two measurements, length in
+    meters and weight in kilograms. First a small set (sedan,
+    SUV, pickup truck, delivery van), then the full list of eight
+    vehicles (Smart Fortwo, Mini Cooper, compact hatchback,
+    sedan, SUV, minivan, pickup truck, delivery van). Real
+    vehicles, representative numbers, not a specific brand.
+  - The scatter plot in cell 5 of the notebook puts length on the
+    x-axis and weight on the y-axis. Each dot is one vehicle.
+    Cell 7 highlights the two extremes: the Smart Fortwo at the
+    bottom left (2.7 m, 900 kg) and the delivery van at the top
+    right (6.5 m, 3,500 kg).
+  - The notebook's phrasing for the key idea: a row of numbers
+    and a point in space are the same information in two forms.
+  - KEY TERM: data point: one record, one object, one row of the
+    table, drawn as one dot. (added definition)
+
+3. A POINT IS ALSO AN ARROW: VECTORS
+  - KEY TERM: vector: an arrow from the origin (0, 0) out to the
+    point. A vector has a direction and a length, also called
+    magnitude.
+  - KEY TERM: origin: the point (0, 0), where every measurement
+    is zero. (added definition)
+  - For the vehicles the origin is a natural starting point: no
+    length, no weight. Cell 9 of the notebook draws the arrows
+    for the smallest and largest vehicle. The biggest arrow is
+    the delivery van, the smallest is the Smart Fortwo.
+  - What the arrow view buys you (added): once a row is an arrow,
+    you can ask geometric questions about it. How long is it?
+    What angle does it make with another arrow? How much of it
+    lies along some direction? Every one of those questions has
+    a one-line formula, and every one of them is about to matter.
+
+4. NOTATION
+  - KEY TERM: scalar: a single number. One measurement, a
+    length, an angle, a weight. Written in regular type,
+    occasionally a Greek letter (the professor's aside: not
+    because he is from Greece, that is just the math convention).
+  - KEY TERM: vector: an ordered list of numbers, written in bold
+    as v. The numbers are its components.
+      Column form: the components stacked vertically. The
+        typical way to write it in math.
+      Row form: the components side by side, v = [4.6, 1500].
+        The computing view. A row of the data table is a vector
+        in row form. One record in the dataset.
+      Same vector either way. Columns when doing geometry, rows
+        when you mean one record.
+  - KEY TERM: component: one of the numbers in a vector. For a
+    vehicle, the length is one component and the weight is the
+    other. (added definition)
+  - KEY TERM: theta: the Greek letter used for the angle between
+    two arrows. The dot product measures it.
+  - KEY TERM: matrix: stack many vectors together, every vehicle
+    as a row, and you get a matrix. The whole data table as one
+    block of numbers. The entire cloud of points IS a matrix.
+  - KEY TERM: dimension: the number of components in a vector,
+    which is the number of attributes measured. Two here, so
+    everything can be drawn on a flat plot. The math is
+    identical at 10 or 100 attributes, you just lose the
+    picture. (added definition)
+  - For example, three houses measured on two attributes, floor
+    area in hundreds of square feet and bedrooms:
+
+      import numpy as np
+      m_h = np.array([[12, 2], [18, 3], [25, 4]])
+      print(m_h.shape) ## (3, 2): 3 records, 2 attributes
+      print(m_h[1]) ## [18 3], one record as a row vector
+      print(m_h[:, 0]) ## [12 18 25], one attribute as a column
+
+    The shape (3, 2) is the m by n from the preprocessing intro
+    lecture: m rows, one per object, n columns, one per
+    attribute.
+
+5. NEW DATA, SAME GEOMETRY: PENGUINS
+  - Vehicles are a small set and not that interesting. The rest
+    of the unit uses the Palmer Penguins dataset. The concepts
+    transfer over regardless of the domain, because they are
+    about fundamentals, not about vehicles.
+  - Dataset facts from the lecture: real body measurements for
+    three penguin species, Adélie, Chinstrap, and Gentoo, near
+    Palmer Station in Antarctica. Collected by Dr. Kristen
+    Gorman, made available as a dataset by Allison Horst
+    (palmerpenguins GitHub repo). A little over 300 entries.
+  - Typical values from the lecture's slide: Adélie flipper 190
+    mm and body mass 3,700 g. Chinstrap 196 mm and 3,733 g.
+    Gentoo 217 mm and 5,076 g.
+  - Two measurements used: flipper length in millimeters and
+    body mass in grams. Cell 12 of the notebook plots every
+    penguin as a dot, flipper length on x, body mass on y.
+  - Notebook detail worth knowing: body mass is plotted in
+    hundreds of grams (divided by 100). The code comments call
+    this a unit relabel, not standardization, done so the two
+    axes are visually comparable. It changes the ruler on one
+    axis and nothing else.
+
+6. MEASURING FROM THE CENTER OF THE CLOUD
+  - For penguins, the origin makes no sense. No penguin is
+    anywhere near zero flipper length and zero mass. Arrows from
+    (0, 0) would all point the same way toward a far-off corner
+    and say nothing about how penguins differ.
+  - What you actually want to know is how each penguin differs
+    from the average penguin on both measurements. So measure
+    from the center of the cloud instead of from the origin.
+  - KEY TERM: center of the cloud: the point whose coordinates
+    are the mean of each attribute. The average penguin. (added
+    definition)
+  - KEY TERM: centering: subtracting the mean of each attribute
+    from every value, so the cloud's center moves to (0, 0) and
+    every arrow starts there. (added definition)
+  - Cell 14 of the notebook draws two arrows from the center to
+    two penguins at opposite ends of the spectrum. Each arrow's
+    direction says which way that penguin differs from average
+    and its magnitude says how far off it is.
+  - The picture did not change when the data did. Vehicles or
+    penguins, it is points in space, arrows for direction and
+    magnitude, and a cloud that leans in some direction. That
+    lean raises the question the rest of the video answers:
+    which direction matters the most?
+  - For example, six students measured on hours studied and
+    quiz score (score in tens so the axes are comparable, the
+    same relabel trick the notebook uses):
+
+      pts = np.array([[2, 5.5], [4, 6.2], [5, 7.0],
+                      [7, 7.4], [8, 8.5], [10, 9.0]])
+      c = pts.mean(axis=0) ## [6.    7.267], the center
+      pc = pts - c ## centered cloud, every arrow from (0, 0)
+
+    The center is 6.0 hours and 7.267 tens of points. The first
+    student becomes [-4, -1.767]: four hours under average and
+    about 17.7 points under. The last becomes [4, 1.733]. The
+    arrows now point in opposite directions, which is the whole
+    reason for centering.
+
+7. THE DOT PRODUCT: MEASURING ALIGNMENT
+  - Pick any direction, meaning a line through the center. The
+    dot product of a penguin's vector with that direction
+    measures how far along that direction the penguin reaches.
+      Large positive: the vector points the same way as the
+        direction.
+      Near zero: the vector is perpendicular to the direction.
+        Nothing of it lies along that line.
+      Negative: the vector points the opposite way. (added)
+  - KEY TERM: dot product: for two vectors, multiply the matching
+    components and add the products. For v = [v1, v2] and u =
+    [u1, u2] that is v1 * u1 + v2 * u2. (added, the arithmetic
+    form. The notebook gives the geometric form below.)
+  - The geometric form from the notebook: v dot u equals the
+    norm of v times the norm of u times the cosine of theta,
+    where theta is the angle between them.
+  - Reading that formula (added): cosine of 0 degrees is 1, so
+    two arrows pointing the same way give the full product of
+    their lengths. Cosine of 90 degrees is 0, so perpendicular
+    arrows give zero no matter how long they are. Cosine of 180
+    degrees is -1. The cosine is the alignment dial, and the two
+    norms just scale it by how long the arrows are.
+  - Cell 17 of the notebook shows one penguin vector (blue) with
+    three green direction lines: aligned, partly aligned,
+    perpendicular. The dot product printed in each title
+    shrinks as the alignment drops, and in the perpendicular
+    panel the projected point lands exactly at the center.
+  - For example, v = [3, 4] and w = [4, 1]:
+
+      v, w = np.array([3.0, 4.0]), np.array([4.0, 1.0])
+      d = v @ w ## 16.0, same as 3*4 + 4*1
+      nv, nw = np.linalg.norm(v), np.linalg.norm(w) ## 5.0, 4.123
+      cos_t = d / (nv * nw) ## 0.7761
+      ang = np.degrees(np.arccos(cos_t)) ## 39.09 degrees
+
+    Arithmetic form: 3 * 4 + 4 * 1 = 16. Geometric form: 5.0 *
+    4.123 * 0.7761 = 16.0. Same number, two routes. The angle
+    between the arrows is 39.09 degrees, so they mostly agree on
+    direction, and the dot product is a healthy positive number
+    because of it.
+  - In NumPy the @ operator is the dot product for 1-D arrays
+    (and matrix multiplication for 2-D). np.dot does the same.
+    (added)
+
+8. NORM, ORTHOGONAL, UNIT, ORTHONORMAL
+  - KEY TERM: norm: the length of the arrow, written as v with
+    double bars on each side. It is the square root of the dot
+    product of the vector with itself.
+  - Why that works (added): v dot v is v1 squared plus v2
+    squared, and the square root of that is the Pythagorean
+    distance from the origin to the tip. The norm is the
+    hypotenuse.
+  - KEY TERM: orthogonal: two vectors that meet at a right angle.
+    Equivalent statement: their dot product is zero. The last
+    panel of cell 17 and the right panel of cell 19 show this.
+  - KEY TERM: unit vector: a vector of length one.
+  - KEY TERM: orthonormal: orthogonal plus unit length. The
+    lecture flags this as a term you will need soon.
+  - Making a unit vector (added): divide a vector by its own
+    norm. The direction is untouched and the length becomes
+    exactly 1. Directions are always stored as unit vectors in
+    this material, so that a dot product with one reads as a
+    pure distance along the line with no length scaling mixed
+    in.
+  - For example, continuing with v = [3, 4]:
+
+      u = v / nv ## [0.6, 0.8], the unit vector along v
+      print(np.linalg.norm(u)) ## 1.0
+      a, b = np.array([2.0, 5.0]), np.array([-5.0, 2.0])
+      print(a @ b) ## 0.0, orthogonal
+
+    The norm of v is the square root of 3 * 3 + 4 * 4 = 25, so
+    5.0, the classic 3-4-5 triangle. Dividing by 5 gives [0.6,
+    0.8], whose norm is 1.0. The pair a and b has dot product
+    2 * (-5) + 5 * 2 = -10 + 10 = 0, so they are orthogonal.
+    Swapping a vector's components and negating one of them is
+    the quick way to build a perpendicular in 2-D. Both a and b
+    scaled to length 1 would be an orthonormal pair.
+
+9. PROJECTION: DROPPING A VECTOR ONTO A DIRECTION
+  - KEY TERM: projection: pick a direction, then drop a
+    perpendicular from the tip of the arrow to the line. The
+    foot of that perpendicular is the projection. It is how much
+    of the penguin lies along that direction.
+  - The notebook's statement of the link: the dot product IS the
+    projection length, up to the length of the direction. With
+    a unit-length direction the dot product is exactly the
+    signed distance from the center to the foot of the
+    perpendicular. (added: the unit-length qualifier spelled
+    out)
+  - Two flavors, both used in the notebook code (added):
+      Scalar projection: the dot product v dot u, a single
+        number, how far along the line.
+      Projected point: that number times the unit direction u,
+        which gives the coordinates of the foot on the line.
+        Cell 21 computes dot = v @ u and proj_pt = dot * u.
+  - What is lost (added): the piece of v that does not lie along
+    the line is the dashed perpendicular segment in the figure.
+    That leftover is itself orthogonal to the direction, which
+    is what "foot of the perpendicular" means.
+  - For example, v = [3, 4] projected onto the direction 30
+    degrees above the x-axis:
+
+      t = np.radians(30)
+      u30 = np.array([np.cos(t), np.sin(t)]) ## [0.866, 0.5]
+      s = v @ u30 ## 4.5981, scalar projection
+      foot = s * u30 ## [3.982, 2.299], the projected point
+      left = v - foot ## [-0.982, 1.701], the perpendicular part
+      print(left @ u30) ## -2.2e-16, zero up to rounding
+
+    The arrow of length 5 reaches 4.598 along the 30-degree line
+    and the rest of it, a piece of length about 1.96, sticks out
+    perpendicular. The last print gives -2.2e-16, which is zero
+    with floating-point crumbs on it: the leftover really is
+    orthogonal to the line. Rotate the direction 90 degrees to
+    120 and the same v projects to only 1.964. Same arrow,
+    different line, very different amount carried over.
+
+10. PROJECTING THE WHOLE CLOUD: SPREAD DEPENDS ON DIRECTION
+  - Now project every penguin onto the line. The 2-D cloud
+    collapses to a 1-D spread of points along that direction.
+    How spread out those points are depends on which direction
+    you chose. Some directions squeeze the penguins together.
+    One direction spreads them out the most.
+  - KEY TERM: spread: how widely the projected points are
+    scattered along the line. The notebook measures it as the
+    standard deviation of the projected values. Video 2 replaces
+    the word with its formal name, variance, which is that
+    standard deviation squared. (added definition)
+  - Why the biggest spread is the goal: the more spread the
+    projection keeps, the more of the information in the cloud
+    survives the squeeze from two numbers per penguin down to
+    one. A direction with tiny spread has crushed everyone into
+    nearly the same value and thrown the differences away.
+  - Cell 23 of the notebook sweeps every direction from 0 to 180
+    degrees, keeps the one with the largest spread, and shows it
+    flanked by two directions 45 degrees off. The lecture calls
+    the panels a so-and-so direction (spread 11.4, labeled "a
+    so-so direction" in the notebook), the widest direction
+    (spread 15.8), and another direction.
+  - This was done by hand, or by brute-force sweep. The next
+    video finds the widest direction in an automated way from
+    the data itself, using the covariance.
+  - For example, the six-student cloud pc from section 6,
+    projected onto four directions:
+
+      for ang in (0, 45, 90, 135):
+          t = np.radians(ang)
+          u = np.array([np.cos(t), np.sin(t)])
+          print(ang, (pc @ u).std().round(3)) ## spread
+
+    Output: 0 degrees 2.646, 45 degrees 2.721, 90 degrees 1.216,
+    135 degrees 1.036. Zero degrees is the hours axis alone, 90
+    is the score axis alone. The 45-degree line beats both of
+    them, because the cloud leans up and to the right (more
+    hours, higher score) and that diagonal catches both kinds of
+    variation at once. At 135 degrees the line runs against the
+    lean and the students pile up near the center.
+  - Sweeping all 180 whole-degree angles the same way finds the
+    best at 24 degrees with spread 2.905. The widest direction is
+    not either original axis. It is a tilt of the two, and
+    finding that tilt without a brute-force sweep is what PCA
+    does. (Run: loop the block above over range(180) and take
+    the argmax.)
+
+11. WHERE THIS IS GOING
+  - The question for video 2: can the data itself tell us the
+    direction of maximum spread without guessing? That best
+    direction has a name, and it comes from the data's
+    covariance.
+  - What to carry forward (added): centered data, unit-vector
+    directions, dot product as projection length, spread of the
+    projections as the score for a direction. Video 2 builds
+    directly on these four pieces.
+
+12. KEY TAKEAWAYS
+  - Row of the table = point in space = arrow from the origin.
+    Stack the rows and you have a matrix.
+  - Scalar is one number, vector is an ordered list of numbers,
+    theta is the angle between two vectors.
+  - When the origin is meaningless, center the data and measure
+    every arrow from the average point.
+  - Dot product = norm of v times norm of u times cos theta =
+    how far v reaches along u. Zero means perpendicular.
+  - Norm = length = square root of v dot v. Orthogonal = dot
+    product zero. Unit vector = length one. Orthonormal = both.
+  - Projection = foot of the perpendicular on the line. With a
+    unit direction, its length is the dot product.
+  - Projecting a cloud onto a line gives a 1-D spread that
+    depends on the direction. Widest spread keeps the most
+    information. Finding it automatically is video 2.
+
+13. QUIZ-SAFE FACTS
+  - Five video series on PCA. Intuition through linear algebra
+    fundamentals and visuals on real data, not textbook math.
+  - Warm-up data: vehicles, length (m) and weight (kg). Extremes
+    are the Smart Fortwo (2.7 m, 900 kg) and delivery van (6.5 m,
+    3,500 kg). Eight vehicles in the full list.
+  - A vector is an arrow from the origin (0, 0) with a direction
+    and a length (magnitude).
+  - Scalar: single number, regular type, occasionally Greek.
+    Vector: ordered list of numbers, bold, components. Column
+    form is the math convention, row form is the computing view
+    and one record in the dataset. Theta: angle between two
+    arrows. Matrix: vectors stacked as rows, the whole data table.
+  - Penguins: Palmer Penguins, three species (Adélie, Chinstrap,
+    Gentoo), Palmer Station, Antarctica, collected by Dr. Kristen
+    Gorman, dataset by Allison Horst, a little over 300 rows.
+    Measurements used: flipper length (mm) and body mass (g).
+  - Typical values: Adélie 190 mm, 3,700 g. Chinstrap 196 mm,
+    3,733 g. Gentoo 217 mm, 5,076 g.
+  - For penguins the origin is not useful, so arrows are measured
+    from the center of the cloud and show how each penguin
+    differs from the average.
+  - Dot product of a vector with a direction: how far the vector
+    reaches along that direction. Large positive when aligned,
+    near zero when perpendicular. Formula: norm of v times norm
+    of u times cos theta.
+  - Norm: length of the vector, square root of the dot product
+    with itself.
+  - Orthogonal: right angle, dot product zero. Unit vector:
+    length one. Orthonormal: orthogonal and unit length.
+  - Projection: drop a perpendicular from the arrow tip to the
+    line, the foot is the projection. The dot product is the
+    projection length.
+  - Projecting the whole cloud onto a line: the spread depends on
+    the direction. The biggest spread preserves the most
+    information.
+  - Lecture's reported spreads: so-and-so direction 11.4, widest
+    direction 15.8.
+  - Video 2 finds the widest direction automatically using the
+    covariance.

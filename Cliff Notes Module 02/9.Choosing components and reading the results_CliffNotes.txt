@@ -1,0 +1,374 @@
+1. THREE OPEN QUESTIONS
+  - Video 4 ran PCA end to end and left a 2-D picture with three
+    loose ends:
+      Two components were kept by eye. What is the actual rule?
+      The new axes were a black box. What do PC1 and PC2 mean?
+      The species labels were never used. What happens when they
+        finally are?
+  - This video answers all three in that order, then closes with
+    a cautionary tale about what plain correlations can hide.
+  - The notebook's first code cell rebuilds the Video 4 result: load
+    the penguins, drop NAs on the four features, StandardScaler,
+    PCA().fit, and it keeps the explained_variance_ratio_, its
+    cumulative sum, and the species column for later. It also
+    defines a separate species color set, distinct from the
+    geometry palette, locked from this video on.
+
+2. THE SCREE PLOT
+  - The Video 4 bar chart of percent variance per component has
+    an official name: a scree plot. The professor's memory hook:
+    it is "screen" without the n at the end.
+  - KEY TERM: scree plot: variance explained plotted against
+    component number, PC1, PC2, PC3, and so on along the x-axis.
+    The notebook draws the per-component share and the cumulative
+    share on one 0 to 100 percent axis, with a dashed line at the
+    90 percent target. See the figure from cell 4 of
+    9.1.Choosing_components_and_reading_the_results.ipynb.
+  - Two standard rules for reading it: the elbow, and a variance
+    target.
+
+3. RULE ONE: THE ELBOW
+  - Follow the curve until it flattens. The bend is the elbow,
+    named for the joint in a human arm. Past it, extra components
+    stop buying you much.
+  - KEY TERM: elbow: the point on the scree plot where the curve
+    turns from steep to flat, marking the point of diminishing
+    returns.
+  - KEY TERM: point of diminishing returns: the point after which
+    each additional component adds much less than the one before
+    (added definition). You still gain, but not enough to justify
+    the extra dimension.
+  - The professor's reading of the penguin plot: the PC1 point is
+    the base of the arm, the PC2 point is the elbow, and after
+    that the arm flattens out completely. So stop after PC2. The
+    cumulative line shows the same thing even more clearly: it
+    barely moves after a point.
+
+4. RULE TWO: A VARIANCE TARGET
+  - Decide in advance how much total variance you want to keep,
+    often 90 percent, and take as many components as it takes to
+    clear that line.
+  - KEY TERM: variance target: a cumulative-variance threshold
+    chosen before looking, used as the stopping rule (added
+    definition). It replaces eyeballing with a number.
+  - On the penguins the 90 percent target is the green dashed
+    line. With two components the cumulative is 88 percent, very
+    close to the target, and the professor decides to keep two.
+    The notebook's wording: the curve bends hard after PC2, the
+    cumulative is in the high 80s by the second component and
+    clears 90 just after, so "two, maybe three" is what the rules
+    say, and Video 4's eyeball call was sound. Two it is, for a
+    picture you can see.
+  - Both rules point the same way here. They do not have to, and
+    when they disagree you are making a judgment call between
+    fewer dimensions and more retained variance (added remark).
+  - An example where they disagree. Five features from the
+    scikit-learn wine data set (alcohol, malic acid, flavanoids,
+    color intensity, proline), standardized, PCA fit:
+      per component: 42.9, 32.8, 12.1, 6.7, 5.6 percent
+      cumulative: 42.9, 75.7, 87.7, 94.4, 100.0 percent
+    The drops between consecutive components are 10.1, 20.7,
+    5.4, and 1.1 points. The big drop lands between PC2 and PC3,
+    and after PC3 the curve is flat, so the elbow reading says
+    keep three. A 90 percent target says keep four (87.7 falls
+    short, 94.4 clears it). An 80 percent target would say three.
+    Same plot, and two, three, or four are all defensible. The
+    one you pick depends on whether you need a 2-D picture, a
+    compact model input, or a 90 percent guarantee.
+  - Code for that scree reading, plus the loadings and class
+    means used in sections 5 and 6:
+
+      import numpy as np, pandas as pd
+      from sklearn.datasets import load_wine
+      from sklearn.preprocessing import StandardScaler
+      from sklearn.decomposition import PCA
+
+      feats = ['alcohol', 'malic_acid', 'flavanoids', 'color_intensity', 'proline']
+      df_w = load_wine(as_frame=True).frame
+      X_std = StandardScaler().fit_transform(df_w[feats])
+      pca = PCA().fit(X_std)
+      ratio = pca.explained_variance_ratio_ * 100
+      cum = np.cumsum(ratio)
+      print(ratio.round(1), cum.round(1), np.searchsorted(cum, 90) + 1, sep='\n')
+
+      df_load = pd.DataFrame(pca.components_[:2].T, index=feats, columns=['PC1', 'PC2'])
+      print(df_load.round(3))
+
+      df_sc = pd.DataFrame(pca.transform(X_std)[:, :2], columns=['PC1', 'PC2'])
+      df_sc['class'] = df_w['target']
+      print(df_sc.groupby('class').mean().round(2))
+
+    Output:
+
+      [42.9 32.8 12.1  6.7  5.6]
+      [ 42.9  75.7  87.7  94.4 100. ]
+      4
+                         PC1    PC2
+      alcohol          0.588  0.228
+      malic_acid      -0.105  0.613
+      flavanoids       0.367 -0.535
+      color_intensity  0.371  0.523
+      proline          0.609 -0.110
+              PC1   PC2
+      class
+      0      1.71 -0.51
+      1     -1.22 -0.82
+      2     -0.29  1.83
+
+    np.searchsorted(cum, 90) + 1 is the variance-target rule as
+    one line: the first component index at which the cumulative
+    clears 90. The scree plot itself is a two-line matplotlib
+    call on ratio and cum, omitted here.
+
+5. THE REVEAL: COLOR THE PROJECTION BY SPECIES
+  - Drumroll. The same PC1 versus PC2 projection from Video 4,
+    the one built with no knowledge of species, is recolored by
+    the species of each penguin. See the figure from cell 7 of
+    9.1.Choosing_components_and_reading_the_results.ipynb.
+  - The professor's reading: very good separation between the
+    Gentoo penguins and the other two kinds, and some separation
+    between the remaining two, though not as clean as the first.
+  - The point: PCA never saw the labels. It looked only at the
+    physical measurements. It did not classify the penguins. It
+    reduced four numbers to two, and the biological groups fell
+    out on their own, because the data were naturally separated
+    and the reduction preserved that. That is the payoff Video 4
+    set up and deliberately withheld.
+  - The wine example, in numbers rather than colors: the data
+    set carries a class label (three grape cultivars, coded 0, 1,
+    2) that PCA never touched. Averaging the scores by class:
+      class 0: PC1 1.71, PC2 -0.51
+      class 1: PC1 -1.22, PC2 -0.82
+      class 2: PC1 -0.29, PC2 1.83
+    Classes 0 and 1 sit at opposite ends of PC1. Class 2 sits
+    apart from both along PC2. Two axes built from chemistry
+    alone, and the three cultivars land in three different
+    corners. Same lesson, different bottle.
+
+6. LOADINGS: WHAT PC1 AND PC2 MEAN
+  - Someone will ask: if PC1 separates the species that well,
+    tell me what PC1 is and I will use it as a filter. The
+    answer: PC1 and PC2 are not one existing attribute picked
+    out. They are composite attributes, a weighted combination of
+    the values of the different attributes.
+  - KEY TERM: loadings: the weights in that combination, one
+    weight per original feature per component. They live in the
+    pca.components_ array: row 0 holds PC1's four weights, row 1
+    holds PC2's.
+  - KEY TERM: composite attribute: a new variable formed by
+    combining several original variables with weights (added
+    definition). A score on PC1 is each standardized feature
+    times its PC1 loading, summed.
+  - The bar chart from cell 10 of
+    9.1.Choosing_components_and_reading_the_results.ipynb shows
+    the loadings, orange bars for PC1 and blue bars for PC2, one
+    pair per feature.
+  - The professor's reading, with the notebook's gloss:
+      PC1 weighs bill length, flipper length, and body mass
+        positively, and bill depth negatively. Moving along PC1
+        means a penguin that is longer and heavier with a
+        shallower bill. That single axis is what most separates
+        Gentoos from the other two species.
+      PC2 has high values for bill length and bill depth
+        together, zero for flipper length, and very little for
+        body mass. It is a bill-shape axis, largely independent
+        of overall body size.
+  - So, roughly, and the professor says it is not 100 percent:
+    PC1 = body size and bill shallowness, PC2 = bill shape. That
+    is what the black box was doing all along.
+  - How to read a loadings table in general (added guidance):
+      Big absolute value: that feature matters a lot to this
+        component. Near zero: it barely participates.
+      Same sign as another feature: they move together along
+        this component. Opposite sign: the component contrasts
+        them.
+      The overall sign of a component is arbitrary. Flipping
+        every loading in PC1 flips every PC1 score, and nothing
+        about the picture changes except which way is left.
+        Compare signs within a component, not across runs.
+      The loadings are unit vectors (the eigenvectors), so the
+        squared loadings in one component sum to 1.
+  - The wine loadings from the section 4 code:
+      PC1: alcohol 0.588, malic acid -0.105, flavanoids 0.367,
+        color intensity 0.371, proline 0.609.
+      PC2: alcohol 0.228, malic acid 0.613, flavanoids -0.535,
+        color intensity 0.523, proline -0.110.
+    PC1 loads positively and about equally on alcohol and
+    proline, moderately on flavanoids and color intensity, and
+    barely on malic acid: a "richness" axis, wines that are
+    stronger, more concentrated, and more flavorful all at once.
+    PC2 contrasts malic acid and color intensity (positive)
+    against flavanoids (negative), with alcohol and proline
+    much smaller: a "sharp and dark versus smooth" axis that has
+    little to do with strength. Those are blends, exactly as the
+    professor says. There is no ruler for "richness."
+  - One wine by hand, to make "weighted combination" literal.
+    The first wine's standardized values are (1.519, -0.562,
+    1.035, 0.252, 1.013) in the feature order above. Multiply by
+    the PC1 loadings and sum:
+      1.519 x 0.588 + (-0.562) x (-0.105) + 1.035 x 0.367
+        + 0.252 x 0.371 + 1.013 x 0.609 = 2.042
+    scikit-learn's transform reports 2.042 for that wine's PC1
+    score. Same number. That is all a score is.
+
+7. WHAT WE GAINED, AND WHAT WE GAVE UP
+  - The trajectory: four dimensions with some correlation,
+    reduced to two axes that keep about 88 percent of the total
+    variance. The picture can be seen and read, and because the
+    axes were built along the highest variance, the correlation
+    among them has been removed.
+  - The cost, stated honestly: the axes are blends, composites.
+    They do not map directly to one attribute. "PC1" is not
+    something you can put a ruler on. And the roughly 12 percent
+    of variation living in PC3 and PC4 is discarded.
+  - For visualization and preprocessing that trade is usually a
+    bargain. When every last feature matters, it may not be. That
+    trade-off is the judgment PCA always asks of you.
+
+8. A CAUTIONARY TALE: SIMPSON'S PARADOX
+  - Simpson the mathematician, not Homer. An interesting
+    phenomenon that shows up in this very data set, and the
+    reason coloring by group matters so much.
+  - Set PCA aside and look at two raw features, bill length and
+    bill depth, for all penguins at once. See the two-panel
+    figure from cell 14 of
+    9.1.Choosing_components_and_reading_the_results.ipynb: left
+    panel is all penguins pooled with one trend line, right panel
+    is the same points split by species with a trend line each.
+  - Pooled, the relationship between bill length and bill depth
+    is negative. Split by species, every single group shows a
+    positive relationship. The pooled trend is not just weaker.
+    It points the wrong way.
+  - KEY TERM: Simpson's paradox: the behavior of a data set as a
+    whole is completely different from the behavior of the data
+    set once you separate it into groups. An aggregate can
+    reverse the pattern present in every subgroup.
+  - KEY TERM: trend line: the straight line fit through a
+    scatterplot (the notebook uses np.polyfit with degree 1),
+    whose slope sign says whether y rises or falls with x (added
+    definition).
+  - The explanation, in general and in this case: there is
+    typically another hidden variable you are not considering.
+    Here the hidden variable is species. Another way to think
+    about it is how many measurements each species has. Either
+    way, the grouping was driving the pattern and the pooled view
+    threw the grouping away. This happens often in data.
+  - KEY TERM: hidden variable: a variable that affects the
+    relationship you are looking at but is not on either axis
+    (added definition). Species is one. Any grouping can be one.
+  - An example. Ninety employees across three departments, years
+    of experience against salary in thousands. Support staff have
+    the most years and the lowest pay band, management the fewest
+    years and the highest band. Within every department, more
+    years means more pay:
+
+      import numpy as np, pandas as pd
+
+      rng = np.random.default_rng(11)
+      rows = []
+      for dept, base, start in [('support', 40, 10), ('engineering', 70, 5), ('management', 100, 0)]:
+          yrs = start + rng.uniform(0, 8, 30) ## years of experience
+          sal = base + 1.5 * yrs + rng.normal(0, 3, 30) ## salary, thousands
+          rows += list(zip([dept] * 30, yrs, sal))
+      df_s = pd.DataFrame(rows, columns=['dept', 'years', 'salary_k'])
+
+      print('pooled', np.polyfit(df_s['years'], df_s['salary_k'], 1)[0].round(2))
+      for dept, g in df_s.groupby('dept'):
+          print(dept, np.polyfit(g['years'], g['salary_k'], 1)[0].round(2))
+
+    Output:
+
+      pooled -3.03
+      engineering 1.32
+      management 1.44
+      support 1.18
+
+    Pooled, every extra year of experience costs about 3,030
+    dollars. Within each department, every extra year pays 1,180
+    to 1,440 dollars more. The pooled line is answering a
+    different question ("which department has the veterans?")
+    than the one you asked ("does experience pay?"). The hidden
+    variable is department.
+  - Why the species coloring earlier was more than decoration:
+    real structure hides inside subgroups, and responsible data
+    science means always asking whether a grouping is secretly
+    driving, or hiding, the pattern you see.
+  - Further reading offered by the notebook: Downey, Probably
+    Overthinking It, chapter 10, which tours this effect on the
+    same penguin data. Pitt students can read it free through the
+    library link in cell 15.
+
+9. CLOSING THE ARC
+  - Five videos, one data set. Video 1, points and arrows. Video
+    2, the covariance matrix hands over the best directions as
+    eigenvectors. Video 3, the procedure is named PCA and its two
+    payoffs are explained. Video 4, PCA for real with
+    scikit-learn. Video 5, choose the components, read the axes,
+    and stay honest about what an aggregate can hide.
+  - The professor's summary of what PCA does: it eliminates the
+    correlation among the data and reduces the number of
+    dimensions, but the transformation is not "pick the best
+    attributes." It is a blend of the attributes that generates
+    the final dimensions.
+  - From here PCA is a tool: a preprocessing step that turns
+    many correlated features into a few informative ones before
+    they go to the models ahead, useful particularly for
+    high-dimensional data you want to reduce without losing too
+    much information.
+
+10. KEY TAKEAWAYS
+  - Scree plot: variance explained versus component number. Two
+    reading rules: the elbow (where the curve flattens) and a
+    variance target (often 90 percent).
+  - Penguins: elbow at PC2, 88 percent with two components, keep
+    two. Both rules agree.
+  - Coloring the projection by species shows Gentoos well
+    separated, the other two partly. PCA never saw the labels.
+  - Loadings (pca.components_) are the weights that build each
+    component from the features. PC1 = body size and bill
+    shallowness (bill depth loads negative). PC2 = bill shape.
+  - Gained: a picture, decorrelated axes, 88 percent of variance.
+    Gave up: 12 percent of variance, and axes that are blends
+    rather than measurements.
+  - Simpson's paradox: pooled bill length versus bill depth
+    trends negative, every species trends positive. The hidden
+    variable is species.
+
+11. QUIZ-SAFE FACTS
+  - The plot of percent variance per principal component is
+    called a scree plot.
+  - Elbow rule: keep components up to where the curve flattens,
+    the point of diminishing returns.
+  - Variance target rule: choose a threshold in advance (90
+    percent is the usual example) and keep enough components to
+    reach it.
+  - On the penguins the elbow is at PC2, two components keep 88
+    percent, close to the 90 percent target, and two are kept.
+  - In the species-colored projection, Gentoo is well separated
+    from the other two species. The other two separate less
+    cleanly.
+  - PCA did not use the species labels. The separation emerged
+    from the measurements alone.
+  - PC1 and PC2 are composite attributes, weighted combinations
+    of the original attributes. The weights are called loadings
+    and are stored in pca.components_.
+  - PC1 weighs bill length, flipper length, and body mass
+    positively and bill depth negatively. PC2 has high weights on
+    bill length and bill depth, zero on flipper length, and very
+    little on body mass.
+  - Rough meaning: PC1 is body size and bill shallowness, PC2 is
+    bill shape.
+  - Two components keep about 88 percent of the total variance.
+    About 12 percent is discarded with PC3 and PC4.
+  - The trade-off of PCA: fewer, decorrelated dimensions in
+    exchange for axes that are blends, not direct attributes.
+  - Simpson's paradox: the whole data set behaves differently
+    from the data set split into groups. Named for a
+    mathematician, not Homer.
+  - Penguin case: bill length versus bill depth is negative
+    pooled and positive within each species.
+  - Cause: a hidden variable not being considered, here the
+    species. The professor also points to how many measurements
+    each species has.
+  - PCA is a useful preprocessing step for high-dimensional data
+    you want to reduce without losing too much information.

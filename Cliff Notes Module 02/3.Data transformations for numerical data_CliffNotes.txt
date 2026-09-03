@@ -1,175 +1,218 @@
-Data Transformations for Numerical Data: Study Guide
-Course: Applied Predictive Modeling (CMPINF-2120)
-Source: Data transformations for numerical data lecture transcript
-
-================================================================
 1. WHY TRANSFORM NUMERICAL DATA
-================================================================
   - Most predictive modeling techniques consider many features at
-    the same time.
-      - KEY TERM: feature: one measured attribute of a data item,
-        such as age or income (added definition).
-  - Problem: numerical features in the same dataset come from
-    different domains.
-      - KEY TERM: domain: the range of values an attribute can
-        take, in its own units (added definition).
-  - Lecture example, working adults: age about 18 to 70, income
-    about 25,000 to 150,000. Same dataset, ranges thousands of
-    times apart.
-  - Fix: transform the numerical features into a space that
-    allows easy comparison across domains. Two tools:
+    the same time. The features usually come from different
+    domains while sitting in the same dataset.
+  - The lecture's example: statistics about people and income.
+    Age runs roughly 18 to 70 for working adults. Income runs
+    roughly 25,000 to 150,000. Same table, wildly different
+    scales.
+  - Why that matters in practice: anything that measures
+    distance or adds features together (nearest neighbors,
+    gradient descent, PCA later in this module) will let the
+    feature with the biggest numbers dominate, purely because
+    its numbers are bigger. Income would drown age. (added
+    explanation)
+  - The fix: transform the numerical features into a space that
+    allows easy comparison across domains. Two families:
     standardization and scaling.
+  - KEY TERM: feature: one numeric column of the dataset, one
+    attribute per record. (added definition)
+  - KEY TERM: transformation: applying a formula to every value
+    of a feature to produce a new version of that feature on a
+    different scale. (added definition)
+  - All the code in this lesson is provided as Jupyter Notebooks
+    for download and experimentation. The three tools are all
+    one-liners from scikit-learn's preprocessing module.
 
-================================================================
 2. STANDARDIZATION (Z-SCORE SCALING)
-================================================================
   - KEY TERM: standardization: subtract the feature's mean from
     each value, then divide by the feature's standard deviation.
-  - KEY TERM: mean: the arithmetic average (added definition).
-  - KEY TERM: variance: the average squared distance of the
-    values from their mean (added definition).
-  - KEY TERM: standard deviation: the square root of the
-    variance, a spread measure in the feature's own units
-    (added definition).
-  - Formula, for each value x of a feature:
+    Also called variance scaling or Z-score scaling.
+  - What it buys you: the transformed feature has a mean of
+    exactly zero and a variance of one. Every feature ends up
+    on the same footing, "how many standard deviations from
+    average is this value," regardless of the original units.
+  - Ideal for algorithms that require standardized input or
+    perform better with it.
+  - Side note from the professor: he has used an adjusted
+    Z-score scaling to assign course grades based on performance
+    relative to the rest of the class.
+  - Two things to watch in the output:
+      Negative values appear. Anything below the mean goes
+        negative. Make sure whatever algorithm you feed this to
+        handles negatives correctly.
+      The standard deviation reported by describe() is very
+        close to one, not exactly one, on a small dataset. The
+        lecture had ten rows and saw the gap shrink when it went
+        from five rows to ten. With more items it becomes
+        exactly one.
+  - Why the gap exists at all: StandardScaler divides by the
+    population standard deviation (divide by n). Pandas
+    describe() reports the sample standard deviation (divide by
+    n minus 1). The ratio between the two is the square root of
+    n / (n - 1), which is 1.069 at n = 8 and creeps toward 1 as
+    n grows. Same data, two conventions for the same number.
+    (added explanation)
+  - KEY TERM: population standard deviation: square root of the
+    squared differences from the mean summed and divided by n.
+    (added definition)
+  - KEY TERM: sample standard deviation: the same, but divided
+    by n minus 1. (added definition)
 
-      z = (x - mean(x)) / std(x)
+3. STANDARDIZATION IN PYTHON
+  - The lecture's flow: import pandas, scikit-learn, and NumPy.
+    Build a small DataFrame of age and income. Call describe()
+    to see mean, standard deviation, min, max, and the 25th,
+    50th, and 75th percentiles. Fit and transform with
+    StandardScaler. Call describe() again on the result.
+  - For example, eight people with height in centimeters and
+    salary in dollars:
 
-  - Transcript slip: the spoken formula says "divided by the
-    variance," then the next sentence says "divide by the
-    standard deviation." Standard deviation is correct.
-  - Result: the transformed feature has mean exactly 0 and
-    variance 1 (so standard deviation 1 as well).
-  - Other names: variance scaling, Z-score scaling.
-      - KEY TERM: z-score: the standardized value, the number of
-        standard deviations a value sits above or below the mean
-        (added definition).
-  - Ideal for algorithms that require, or at least perform
-    better with, standardized input.
+      import pandas as pd
+      from sklearn.preprocessing import StandardScaler
+      h = [158, 163, 170, 172, 175, 181, 188, 195]
+      s = [41000, 52000, 48000, 61000, 75000, 58000, 99000, 250000]
+      df_hs = pd.DataFrame({"height_cm": h, "salary": s})
+      df_z = pd.DataFrame(StandardScaler().fit_transform(df_hs),
+                          columns=df_hs.columns) ## mean 0, var 1
+      print(df_z.round(3))
+      print(df_z.describe().round(3))
 
-================================================================
-3. THE PYTHON DEMO (STANDARDIZATION)
-================================================================
-  - Libraries: pandas (data manipulation), scikit-learn, NumPy.
-    Code ships as downloadable Jupyter notebooks.
-  - Dataset: 10 generated rows, two columns. Age 22 to 70,
-    income 35,000 to 140,000.
-  - describe() on the DataFrame reports mean, standard deviation,
-    min, max, and the 25th, 50th, and 75th percentiles.
-      - KEY TERM: DataFrame: the pandas table object (added
-        definition).
-      - KEY TERM: percentile: the value below which a given
-        percent of the data falls (added definition).
-      - KEY TERM: quartile: the 25th, 50th, and 75th percentiles,
-        which cut the sorted data into four equal parts (added
-        definition).
-  - Reported means: age 47, income 74,500.
-  - Standardization is one call to the standard scaler
-    (sklearn.preprocessing.StandardScaler, added class path).
-  - Output: values scaled down, the two attributes now
-    comparable. Negative values appear. Make sure the algorithm
-    in use handles negatives correctly.
-  - describe() after scaling: mean 0 or extremely close (the age
-    case), standard deviation very close to 1 but not exactly.
-  - Professor's explanation: only 10 rows. With 5 rows it sat
-    further from 1. It approaches 1 as the row count grows.
-  - Exact cause (added): StandardScaler divides by n, while
-    describe() reports the sample standard deviation (divides
-    by n - 1). The reported value is sqrt(n / (n - 1)): 1.118 at
-    n = 5, 1.054 at n = 10, trending to 1 as n grows.
+    Before: height has mean 175.25 and salary has mean 85,500.
+    Not comparable. After, both columns have mean 0.000 and
+    describe() reports std 1.069 for both (the n / (n - 1) gap
+    from section 2, with n = 8).
+  - Checking one value by hand: height 195 sits 19.75 above the
+    mean of 175.25, and the population standard deviation of
+    height is 11.573, so 19.75 / 11.573 = 1.707. That matches
+    the last row of df_z. The 250,000 salary comes out at 2.553:
+    it is 2.5 standard deviations above the mean. The shortest
+    person (158) is at -1.491, which is the negative value the
+    lecture warns about.
+  - Now height 1.707 and salary 2.553 are directly comparable.
+    Both say "how unusual is this value for its column."
 
-================================================================
 4. MIN-MAX SCALING
-================================================================
-  - Transcript says "mean-max scaling," read as min-max scaling.
   - KEY TERM: min-max scaling: find the feature's minimum and
-    maximum, then map every value into the new range 0 to 1.
-  - Formula, for each value x of a feature:
+    maximum, then convert every value into the 0 to 1 range.
+    Subtract the minimum from the value, then divide by the
+    distance from minimum to maximum. The lecture's graphic
+    shows the original domain compressed onto 0 to 1.
+  - What it buys you: the smallest value becomes exactly 0, the
+    largest becomes exactly 1, everything else lands in between
+    in proportion. No negatives, so it is friendly to algorithms
+    that dislike them. The shape of the distribution does not
+    change, only its scale. (added explanation)
+  - The lecture's Python: bring back the original data, note the
+    min and max per column from describe(), then one line with
+    MinMaxScaler. The output visibly runs 0 to 1 and describe()
+    confirms min 0 and max 1.
+  - For example, the same df_hs:
 
-      x' = (x - min(x)) / (max(x) - min(x))
+      from sklearn.preprocessing import MinMaxScaler
+      df_mm = pd.DataFrame(MinMaxScaler().fit_transform(df_hs),
+                           columns=df_hs.columns) ## 0 to 1
 
-  - Transcript slip: the spoken denominator is "the difference
-    between the maximum and the mean." It is maximum minus
-    minimum, or the minimum would not map to 0.
-      - KEY TERM: range: maximum minus minimum (added
-        definition).
-  - Python: same data. Age min 22, max 70. Income min 35,000,
-    max 140,000. One-liner: the min-max scaler
-    (sklearn.preprocessing.MinMaxScaler, added class path).
-    Transcript says "scalar," read as scaler.
-  - Output: numbers smaller, age and income look alike, lowest
-    value 0 and highest 1 by inspection. describe() confirms it.
+    Height 172 becomes (172 - 158) / (195 - 158) = 14 / 37 =
+    0.378. Salary 99,000 becomes (99000 - 41000) / (250000 -
+    41000) = 0.278. Salary 250,000 becomes 1.000 and 41,000
+    becomes 0.000.
+  - KEY TERM: outlier: a value that sits far from the rest of its
+    column, like the 250,000 salary here. (added definition)
+  - The weakness shows in that same salary column: because the
+    250,000 outlier owns the value 1.0, every other salary is
+    squeezed below 0.28. The median salary lands at 0.089.
+    Min-max is only as good as its extremes. (added explanation)
 
-================================================================
 5. ROBUST SCALING
-================================================================
-  - KEY TERM: robust scaling: center on a quartile statistic
-    instead of the mean, and divide by the interquartile range
-    instead of the standard deviation or the range.
-  - KEY TERM: median: the 50th percentile, the middle value of
-    the sorted data (added definition).
+  - KEY TERM: robust scaling: instead of centering on the mean
+    (standardization) or the minimum (min-max), center on the
+    median. Instead of dividing by the standard deviation or by
+    the min-to-max range, divide by the interquartile range.
+    The lecture's framing: the transformed data is centered
+    using the median instead of the mean, and scaled by the
+    interquartile range instead of the range used by min-max.
   - KEY TERM: interquartile range (IQR): 75th percentile minus
-    25th percentile, the spread of the middle half of the data.
-    Transcript says "interquartile rates," read as range.
-  - KEY TERM: outlier: a value far from the bulk of the data
-    (added definition). Outliers pull the mean, standard
-    deviation, min, and max. The median and IQR mostly ignore
-    them (added).
-  - Formula (added, the lecture states it in words only):
+    25th percentile. The middle half of the data.
+  - What it buys you: the median and the IQR barely move when an
+    outlier shows up, while the mean, the standard deviation,
+    and especially the min and max jump. So robust scaling is
+    ideal for data that contains outliers. The lecture's word:
+    this technique is amenable to outliers because it uses the
+    median instead of the mean.
+  - Again a one-liner (RobustScaler). The output has negative
+    values, and once again the big deal is that the two features
+    are now in comparable spaces.
+  - For example, the same df_hs:
 
-      x' = (x - median(x)) / (Q3(x) - Q1(x))
+      from sklearn.preprocessing import RobustScaler
+      df_rb = pd.DataFrame(RobustScaler().fit_transform(df_hs),
+                           columns=df_hs.columns) ## median, IQR
 
-  - Transcript inconsistency: "we subtract from the first
-    quartile" and, one sentence later, "centered using the
-    median instead of mean." Median centering is what
-    scikit-learn's RobustScaler does
-    (sklearn.preprocessing.RobustScaler, added class path).
-    Memorize that version.
-  - Ideal for data that contains outliers, because the median
-    replaces the mean. Transcript says "amenable to outliers,"
-    read as resistant to outliers.
-  - Python demo: same data, one call, negative values appear
-    (passage garbled: "get from negative values here").
-    describe() shows the two features in comparable spaces.
+    Height: median 173.5, Q1 168.25, Q3 182.75, IQR 14.5. The
+    195 becomes (195 - 173.5) / 14.5 = 1.483 and the 158 becomes
+    -1.069. Salary: median 59,500, Q1 51,000, Q3 81,000, IQR
+    30,000. The 250,000 becomes (250000 - 59500) / 30000 = 6.35.
+  - Read that 6.35 next to the same value's other two scores
+    (2.553 standardized, 1.000 min-max). Robust scaling pushes
+    the outlier furthest from the bulk of the column, and by
+    construction the middle half of the column lands inside a
+    band one unit wide that straddles zero. describe() on df_rb
+    shows the 50th percentile at exactly 0.000 for both columns,
+    which is the median centering doing its job. (added
+    explanation)
 
-================================================================
-6. THE THREE SIDE BY SIDE (added summary)
-================================================================
-  Method            Subtract    Divide by      Output
-  Standardization   mean        std deviation  mean 0, var 1
-  Min-max scaling   minimum     max - min      range 0 to 1
-  Robust scaling    median      IQR (Q3 - Q1)  median 0, IQR 1
+6. PICKING ONE
+  - Standardization: the lecture's pick for algorithms that
+    require or perform better with standardized input. Sensitive
+    to outliers through the mean and standard deviation. (added
+    explanation)
+  - Min-max: when you need a hard 0 to 1 range and no negatives.
+    Very sensitive to outliers because the extremes define the
+    range. (added explanation)
+  - Robust: when the data has outliers you do not want to remove.
+  - All three are fit on the data (they learn the mean and std,
+    the min and max, or the median and IQR from it) and then
+    applied. The word "fit" in fit_transform is the learning
+    step and "transform" is the application. (added explanation)
+  - None of them change the order of values within a column or
+    the relative spacing between them. They change the ruler,
+    not the data. (added explanation)
 
-  - All three are one-line scikit-learn calls. Standardization
-    and robust scaling produce negatives. Min-max does not.
-
-================================================================
 7. KEY TAKEAWAYS
-================================================================
-  - Models weigh many features at once, so features from
-    different domains (age vs. income) must be brought into a
-    comparable space.
-  - Standardization: z = (x - mean) / std. Mean 0, variance 1.
-  - Min-max scaling: (x - min) / (max - min). Range 0 to 1.
-  - Robust scaling: (x - median) / IQR. Use when the data has
+  - Features from different domains need a common scale before
+    a model sees them together.
+  - Standardization: (x - mean) / standard deviation. Result:
+    mean 0, variance 1. Also called Z-score or variance scaling.
+    Produces negatives.
+  - Min-max: (x - min) / (max - min). Result: 0 to 1.
+  - Robust: center on the median, divide by IQR. Best with
     outliers.
-  - Standardized output has negative values. Check that the
-    downstream algorithm accepts them.
-  - With few rows the post-scaling standard deviation reads
-    close to 1, not exactly 1, and closes in as n grows.
+  - All three are one-liners in scikit-learn: StandardScaler,
+    MinMaxScaler, RobustScaler.
 
-================================================================
 8. QUIZ-SAFE FACTS
-================================================================
-  - Reason for transforming: models consider many features at
-    once, and those features come from different domains.
-  - Standardization: z = (x - mean) / standard deviation.
-    Result: mean 0, variance 1. Also called variance scaling or
-    Z-score scaling.
-  - Min-max: (x - min) / (max - min). Result: range 0 to 1.
-  - Robust scaling: median centering, IQR (75th minus 25th
-    percentile) scaling. Best for data with outliers.
-  - Lecture data: 10 rows. Age 22 to 70 (mean 47). Income 35,000
-    to 140,000 (mean 74,500).
-  - Libraries in the demo: pandas, scikit-learn, NumPy.
-  - Min-max scaling yields 0 at the minimum and 1 at the maximum.
+  - Reason for transforming: modeling techniques consider many
+    features at once and those features come from different
+    domains.
+  - Standardization: subtract the mean, divide by the standard
+    deviation. Transformed mean is zero, variance is one.
+  - Other names for standardization: variance scaling, Z-score
+    scaling.
+  - Standardization is ideal for algorithms that require or
+    perform better with standardized input.
+  - The lecture files min-max and robust scaling under data
+    scaling, as two options separate from standardization.
+  - Standardized output contains negative values.
+  - Standard deviation after standardization on a small dataset
+    is very close to one, not exactly, and gets closer as the
+    number of items grows.
+  - Min-max scaling converts values to the 0 to 1 range using
+    the feature's minimum and maximum.
+  - Robust scaling centers using the median and scales by the
+    interquartile range (75th minus 25th percentile). Ideal for
+    data with outliers.
+  - The lecture's example data: ten rows of age (22 to 70) and
+    income (35,000 to 140,000), age mean 47, income mean 74,500.
+  - describe() reports mean, standard deviation, min, max, and
+    the 25th, 50th, 75th percentiles.

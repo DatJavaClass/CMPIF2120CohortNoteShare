@@ -1,250 +1,290 @@
-Feature Encoding for Categorical Data: Study Guide
-Course: Applied Predictive Modeling (CMPINF-2120)
-Source: Feature Encoding for categorical data lecture transcript
-plus the two companion notebooks
-4.1.APMM2V4.encoding_categorical_titanic and
-4.2.APMM2V4_encoding_categorical_variables
-
-================================================================
-1. WHY ENCODE AT ALL
-================================================================
+1. WHY ENCODE CATEGORICAL DATA
   - Most machine learning algorithms operate only on numerical
-    values. Real data is full of strings. Every string column
-    has to be mapped to numbers somehow.
-  - KEY TERM: categorical data: a column whose values are names
-    or labels from a fixed set of categories (sex, port, class)
-    rather than measured quantities (added definition).
-  - KEY TERM: numerical data: a column whose values are numbers
-    that support arithmetic (income, age) (added definition).
-  - KEY TERM: feature encoding: transforming a categorical
-    column into one or more numeric columns a model can use.
-    The lecture also calls this "data transformations for
-    categorical data".
-  - KEY TERM: level / category: one distinct value a categorical
-    column can take. Lecture example: high, medium, low are
-    three levels, mapped to 2, 1, 0 respectively.
-  - Many mappings are possible. The lecture covers three: label
-    encoding, ordinal encoding, one-hot encoding.
+    values. Real data is full of strings. So the strings have to
+    be mapped to numbers in some way.
+  - The lecture's opening example: three levels, high, medium,
+    and low, mapped to 2, 1, and 0.
+  - There are many ways to do the mapping, and picking the wrong
+    one quietly tells the model something about the data that is
+    not true. That is the whole lesson.
+  - KEY TERM: categorical data: attributes whose values are
+    labels from a fixed set of categories rather than measured
+    quantities. (added definition)
+  - KEY TERM: feature encoding: the transformation from string
+    categories to numbers that an algorithm can consume. (added
+    definition)
+  - Three techniques are covered, matched to three situations:
+      Label encoding: order does not matter to you, you just
+        need numbers.
+      Ordinal encoding: the categories have an inherent order
+        and you specify it.
+      One-hot encoding: there is no order and the model must not
+        be allowed to assume one.
+  - Tools: pandas plus scikit-learn's preprocessing module
+    (LabelEncoder, OrdinalEncoder, OneHotEncoder) and pandas
+    get_dummies. The Titanic notebook imports all three.
 
-================================================================
-2. THE THREE ENCODINGS AT A GLANCE
-================================================================
-  - KEY TERM: label encoding: each category gets one integer,
-    assigned in alphabetical order of the values. You do not
-    choose the order.
-  - KEY TERM: ordinal encoding: each category gets one integer
-    in an order YOU specify, because the data has an inherent
-    order (Third < Second < First).
-  - KEY TERM: one-hot encoding: one new binary column per
-    category. In any row exactly one of those columns is "hot"
-    (1 or True) and the rest are 0 or False. For data with no
-    inherent order, where imposing one would be wrong.
-  - KEY TERM: nominal: categories with no natural order (port,
-    gender) (added definition).
-  - KEY TERM: ordinal: categories with a natural rank (degree
-    level, ticket class) (added definition).
-  - Lecture's decision rule: order irrelevant, label encode.
-    Order matters and you can state it, ordinal encode. No
-    order exists and none may be assumed, one-hot encode.
-    Adopting a false order "by accident or on purpose" risks
-    wrong modeling results.
+2. THE TITANIC DATASET
+  - The lecture's data is the Titanic dataset. It started as a
+    Kaggle competition years ago and became a standard starter
+    dataset for classification problems. The notebook loads it
+    from seaborn.
+  - Only five attributes are kept: survived, sex, embarked,
+    class, who. Rows with any missing values are dropped so
+    missing data is not a concern here.
+  - The columns:
+      survived: 0 did not make it, 1 survived.
+      sex: male or female.
+      embarked: port of embarkation, C for Cherbourg, Q for
+        Queenstown, S for Southampton.
+      class: First, Second, Third.
+      who: man, woman, child.
+  - KEY TERM: classification: predicting a category (here,
+    survived or not) rather than a number. (added definition)
 
-================================================================
-3. SETUP: THE TITANIC DATA (NOTEBOOK 4.1)
-================================================================
-  - Imports: pandas as pd, seaborn as sns, and from
-    sklearn.preprocessing the classes LabelEncoder,
-    OrdinalEncoder, OneHotEncoder. OneHotEncoder is never
-    used. The notebook uses pd.get_dummies instead.
-  - Titanic started as a Kaggle competition and became a very
-    useful starter data set for classification problems.
-  - Load, keep five attributes, drop rows with any missing
-    value:
-      df = sns.load_dataset('titanic')
-      df = df[['survived', 'sex', 'embarked', 'class',
-               'who']].dropna()
-      df.head(8)
-    Transcript says "drop rows that have any values". Read as
-    any missing values. 891 rows become 889 (added, from run).
-  - Column meanings:
-      survived: 0 did not make it, 1 survived
-      sex: male or female
-      embarked: C Cherbourg, Q Queenstown, S Southampton
-      class: Third, First, Second (the class or cabin)
-      who: man, woman, or child
+3. LABEL ENCODING
+  - KEY TERM: label encoding: assign each distinct category an
+    integer, 0 through k minus 1 for k categories. scikit-learn's
+    LabelEncoder does this with fit_transform on the column
+    (fit_transform learns the mapping and applies it in one
+    call). (added definition)
+  - The lecture's flow on Titanic: encode sex into a new column
+    sex_le. To inspect the mapping, select just the two columns
+    and drop_duplicates(), which leaves one row per unique
+    (original, encoded) pair. Two rows come back: female became
+    0, male became 1.
+  - The order is alphabetical. LabelEncoder sorts the distinct
+    values and numbers them in that order. That is fine when the
+    order carries no meaning and nothing downstream treats the
+    numbers as ranks.
+  - For example, a shirt table with a color column holding red,
+    blue, green, blue, red, green:
 
-================================================================
-4. LABEL ENCODING (sex)
-================================================================
-  - Code:
+      import pandas as pd
+      from sklearn.preprocessing import LabelEncoder
+      df_sh = pd.DataFrame({"color": ["red", "blue", "green",
+                                      "blue", "red", "green"]})
       le = LabelEncoder()
-      df['sex_le'] = le.fit_transform(df['sex'])
-      df[['sex', 'sex_le']].drop_duplicates()
-  - KEY TERM: fit_transform: learn the mapping from the column
-    (fit), then apply it (transform), in one call (added
-    definition).
-  - KEY TERM: drop_duplicates: keeps only rows whose combination
-    of values across the selected columns is unique. A proper
-    mapping yields exactly one row per category. Here, two.
-  - Output (verified by running the notebook):
-      sex     sex_le
-      male    1
-      female  0
-    Mapping: female 0, male 1. Alphabetical, which is why
-    female lands on 0. LabelEncoder sorts the unique values and
-    numbers them from 0 (added).
+      df_sh["color_le"] = le.fit_transform(df_sh["color"])
+      print(df_sh[["color", "color_le"]].drop_duplicates())
 
-================================================================
-5. ORDINAL ENCODING (class)
-================================================================
-  - Alphabetical will not cut it when the data has an inherent
-    order. Specify the order yourself.
-  - Code:
-      ordinal_order = [['Third', 'Second', 'First']]
-      oe = OrdinalEncoder(categories=ordinal_order)
-      df['class_ordinal'] = oe.fit_transform(df[['class']])
-      df[['class', 'class_ordinal']].drop_duplicates()
-  - Bracket rule (added): LabelEncoder takes a 1-D Series,
-    df['sex']. OrdinalEncoder takes a 2-D DataFrame,
-    df[['class']], and one category list per column, hence
-    the nested list in ordinal_order.
-  - Output (verified): Third 0.0, Second 1.0, First 2.0. Higher
-    number for higher class of service. Three rows, one per
-    class. OrdinalEncoder returns floats, so 0.0 not 0 (added,
-    from run).
-  - Any order you specify works. The choice is yours, not the
-    encoder's.
+    Output:
 
-================================================================
-6. MANUAL ORDINAL ENCODING (education, NOTEBOOK 4.2)
-================================================================
-  - Same result as section 5, done step by step with a
-    dictionary and map instead of one scikit-learn call.
-  - Data: five rows, four distinct degrees.
-      df = pd.DataFrame({
-          'education': ['High School', 'Bachelors', 'Masters',
-                        'PhD', 'Bachelors']
-      })
-  - Code:
-      education_map = {
-          'High School': 0,
-          'Bachelors': 1,
-          'Masters': 2,
-          'PhD': 3
-      }
-      df['education_encoded'] = df['education'].map(education_map)
-  - Dictionary keys are the degree names, values are 0 through
-    3. Series.map swaps each key for its value.
-  - Output (verified): rows 0 through 4 read 0, 1, 2, 3, 1. Both
-    Bachelors rows (index 1 and 4) become 1.
-  - Transcript calls the dictionary "educational map". Notebook
-    name is education_map. Notebook 4.2 also holds an identical
-    dictionary named education_order (section 9).
+         color  color_le
+      0    red         2
+      1   blue         0
+      2  green         1
 
-================================================================
-7. ONE-HOT ENCODING (embarked)
-================================================================
-  - KEY TERM: dummy variable: a 0/1 (or False/True) column that
-    flags whether a row belongs to one category. One-hot
-    encoding is a set of dummy variables, one per category
-    (added definition).
-  - KEY TERM: cardinality: the number of distinct categories in
-    a column. One-hot encoding creates that many new columns
-    (added definition).
-  - Code:
-      df_ohe = pd.get_dummies(df, columns=['embarked'],
-                              prefix='embarked')
-      df_ohe[['embarked_C', 'embarked_Q',
-              'embarked_S']].drop_duplicates()
-  - New column names are prefix, underscore, original value:
-    embarked_C, embarked_Q, embarked_S. The original embarked
-    column is dropped from df_ohe (added, from run).
-  - Output (verified, bool columns):
-      index  embarked_C  embarked_Q  embarked_S  (original)
-      0      False       False       True        S
-      1      True        False       False       C
-      5      False       True        False       Q
-    Exactly one column is True per row.
-  - Transcript says "embarked 401 in the original was c". Read
-    as "embarked for row 1". Row 5 is the last row shown.
-  - Notebook discrepancy: the cell's last line is
-    df[['embarked']].drop_duplicates(), so Jupyter displays the
-    original S, C, Q column, not the three dummy columns the
-    lecture narrates. The dummy view is the line above it,
-    computed but not displayed. A commented-out df_ohe.head()
-    sits above that.
+    blue is 0, green is 1, red is 2. Alphabetical, nothing to do
+    with the order the values appeared in. le.classes_ holds
+    ['blue', 'green', 'red'] if you need the mapping back.
+  - KEY TERM: drop_duplicates(): pandas method that removes rows
+    whose selected column values repeat, leaving each unique
+    combination once. The lecture uses it to reveal a mapping.
+    (added definition)
 
-================================================================
-8. MANUAL ONE-HOT ENCODING (gender, NOTEBOOK 4.2)
-================================================================
-  - Not better, just transparent. Shown to expose the
-    mechanism, "less of a black box".
-  - Data: four rows, one column, two values.
-      df = pd.DataFrame({
-          'gender': ['Male', 'Female', 'Female', 'Male']
-      })
-  - Code:
-      df['gender_male'] = (df['gender'] == 'Male').astype(int)
-      df['gender_female'] = (df['gender'] == 'Female').astype(int)
-  - Mechanism: the comparison yields True/False per row, and
-    astype(int) turns True into 1 and False into 0.
-  - Output (verified): rows 0 and 3 are gender_male 1,
-    gender_female 0. Rows 1 and 2 are gender_male 0,
-    gender_female 1.
-  - Transcript says "four o's" and "one-hole decoding". Read as
-    four rows and one-hot encoding.
+4. ORDINAL ENCODING
+  - Pure alphabetical order sometimes will not cut it, because
+    the data has an inherent order. Then you use ordinal
+    encoding and specify the order yourself.
+  - KEY TERM: ordinal encoding: integer codes assigned in an
+    order you specify, so that a bigger number means a higher
+    rank. (added definition)
+  - The lecture's flow on Titanic: class has an order. Build an
+    OrdinalEncoder with categories=[['Third', 'Second',
+    'First']], fit_transform the class column into class_ordinal,
+    then select the two columns and drop_duplicates(). Three rows
+    come back: Third became 0, Second became 1, First became 2.
+    Higher value for higher class of service. The order was
+    chosen by us, and any order you specify works.
+  - Two mechanics worth noting (added):
+      OrdinalEncoder takes a 2-D input, so the column is passed
+        as df[['class']] with double brackets, not df['class'].
+        LabelEncoder takes the 1-D series.
+      The categories argument is a list of lists, one inner list
+        per column being encoded, in the order you want the codes
+        to climb.
+  - For example, shirt sizes S, M, L, XL, where alphabetical
+    order (L, M, S, XL) would be nonsense:
 
-================================================================
-9. IN THE NOTEBOOKS BUT NOT THE LECTURE
-================================================================
-  - Notebook 4.2 imports LabelEncoder, OneHotEncoder,
-    ColumnTransformer, Pipeline, LogisticRegression, and numpy.
-    None are used.
-  - Notebook 4.2 first builds a DataFrame named data
-    (education, gender, income), applies education_order via
-    map, then runs pd.get_dummies(data, columns=['gender'])
-    with no prefix argument. Output columns are gender_Female
-    and gender_Male (bool). Default prefix is the column name
-    (verified by run).
-  - Notebook 4.2 puts the heading "Label Encoding (for ordinal
-    data)" over education_order, the dictionary identical to
-    education_map. The lecture calls the same operation ordinal
-    encoding. Same code, two names.
-  - Neither notebook has saved cell outputs. Every output above
-    came from re-running the code.
+      from sklearn.preprocessing import OrdinalEncoder
+      df_sh["size"] = ["M", "S", "XL", "L", "S", "M"]
+      oe = OrdinalEncoder(categories=[["S", "M", "L", "XL"]])
+      df_sh["size_ord"] = oe.fit_transform(df_sh[["size"]])
+      print(df_sh[["size", "size_ord"]].drop_duplicates())
 
-================================================================
-10. KEY TAKEAWAYS
-================================================================
-  - Models want numbers. Strings must be encoded.
-  - Label encoding: LabelEncoder, alphabetical integers, you do
-    not choose the order.
-  - Ordinal encoding: OrdinalEncoder(categories=[[...]]) or a
-    dictionary plus Series.map, you choose the order.
-  - One-hot encoding: pd.get_dummies(df, columns=[...],
-    prefix=...), one binary column per category, exactly one
-    True per row, for data with no inherent order.
-  - Manual versions: a dict with map for ordinal,
-    (df['col'] == 'value').astype(int) for one-hot.
-  - Check any encoding with df[[orig, new]].drop_duplicates().
-    Row count should equal the number of categories.
+    Output:
 
-================================================================
-11. QUIZ-SAFE FACTS
-================================================================
-  - Five Titanic columns used: survived, sex, embarked, class,
-    who. Rows with any missing value are dropped.
-  - Port codes: C Cherbourg, Q Queenstown, S Southampton.
-  - LabelEncoder on sex: female 0, male 1 (alphabetical).
-  - ordinal_order = [['Third', 'Second', 'First']] gives
+        size  size_ord
+      0    M       1.0
+      1    S       0.0
+      2   XL       3.0
+      3    L       2.0
+
+    S is 0, M is 1, L is 2, XL is 3, exactly the list order. Note
+    the codes come back as floats (1.0, not 1). That is how
+    OrdinalEncoder returns them.
+
+5. MANUAL ORDINAL ENCODING WITH A DICTIONARY
+  - The lecture does the same job by hand, more lines, no
+    encoder call. The dataset is a small education table: five
+    rows, four distinct degrees, High School, Bachelors, Masters,
+    PhD.
+  - The mechanism: build a dictionary where the degree names are
+    the keys and 0, 1, 2, 3 are the values. Then create a new
+    column education_encoded by running the education column
+    through map() with that dictionary. Every High School becomes
+    0, every Bachelors 1 (rows 1 and 4 in the lecture's table),
+    every Masters 2, every PhD 3.
+  - KEY TERM: map(): pandas Series method that replaces each
+    value with its lookup in a dictionary (or the result of a
+    function). A value missing from the dictionary becomes NaN.
+    (added definition)
+  - For example, the shirt sizes again, by hand:
+
+      size_map = {"S": 0, "M": 1, "L": 2, "XL": 3}
+      df_sh["size_map"] = df_sh["size"].map(size_map)
+
+    size_map matches size_ord in every row (M 1, S 0, XL 3, L 2,
+    S 0, M 1), except that the dictionary route gives integers
+    while OrdinalEncoder gave floats. Same information, and
+    the dictionary version is easier to read six months later.
+
+6. ONE-HOT ENCODING
+  - The third case: there is no order and you should not use
+    one. If you adopt an order by accident or on purpose, you
+    risk assuming a wrong order in your modeling, and the results
+    may not be what you expect.
+  - Why that risk is real (added): a numeric code says to the
+    model that Southampton (2) is "more" than Cherbourg (0), and
+    that Queenstown (1) sits halfway between them. Linear models
+    and distance-based models will take that literally.
+  - KEY TERM: one-hot encoding: create a new binary column for
+    each category. For any one row, exactly one of the new
+    columns is hot (1 or True) and the rest are 0 or False.
+  - The lecture's flow on Titanic: one line, pd.get_dummies on
+    the DataFrame with columns=['embarked'] and prefix
+    'embarked'. Three new columns appear, named prefix plus
+    underscore plus the original value: embarked_C, embarked_Q,
+    embarked_S. Row 0 had embarked S, so embarked_S is True and
+    the other two are False. A row with embarked C has only
+    embarked_C True. The row with ID 5 had embarked Q, so only
+    embarked_Q is True.
+  - KEY TERM: dummy variable: a 0/1 column standing in for one
+    category. get_dummies is named for it. (added definition)
+  - For example, a region column with west, east, south, east,
+    west, south:
+
+      df_sh["region"] = ["west", "east", "south",
+                         "east", "west", "south"]
+      df_ohe = pd.get_dummies(df_sh[["region"]], columns=["region"],
+                              prefix="region")
+      print(df_ohe)
+
+    Output:
+
+         region_east  region_south  region_west
+      0        False         False         True
+      1         True         False        False
+      2        False          True        False
+      3         True         False        False
+      4        False         False         True
+      5        False          True        False
+
+    Columns come out in alphabetical order of the category
+    values. Each row has exactly one True. The values are the
+    bool dtype in pandas 2.0 and later, which the lecture's output
+    also shows as True and False.
+  - Cost of one-hot (added): k categories become k columns. Fine
+    for three ports. A zip code column with 40,000 distinct
+    values becomes 40,000 mostly-zero columns, which is the
+    sparsity problem from the preprocessing intro.
+
+7. MANUAL ONE-HOT ENCODING
+  - The lecture does this by hand too, not because it is better,
+    but to show the mechanism step by step. The data is a gender
+    DataFrame with four rows and two values, Male and Female.
+  - The mechanism: a new column gender_male holds the answer to
+    "is gender equal to Male?" converted to 1 for true and 0 for
+    false. A second column gender_female does the same for
+    Female. After that, rows 0 and 3 (Male) have gender_male 1
+    and gender_female 0. Rows 1 and 2 (Female) have the reverse.
+  - The Python idiom is a comparison followed by astype(int):
+    (df['gender'] == 'Male') produces a True/False Series and
+    astype(int) turns it into 1/0.
+  - For example, the region column again:
+
+      for r in ["east", "south", "west"]:
+          df_sh["region_" + r] = (df_sh["region"] == r).astype(int)
+      cols = ["region", "region_east", "region_south",
+              "region_west"]
+      print(df_sh[cols])
+
+    Output:
+
+        region  region_east  region_south  region_west
+      0   west            0             0            1
+      1   east            1             0            0
+      2  south            0             1            0
+      3   east            1             0            0
+      4   west            0             0            1
+      5  south            0             1            0
+
+    Same picture as get_dummies, with ints instead of bools and
+    one comparison per category instead of one function call.
+
+8. WHICH ONE WHEN
+  - Label encoding: quick integer codes, alphabetical, order is
+    a side effect. The lecture uses it on sex, a two-valued
+    column where 0 and 1 are all you need.
+  - Ordinal encoding (OrdinalEncoder or a dictionary with map):
+    the categories rank, and you say how. Class of service,
+    education level, shirt size.
+  - One-hot encoding (get_dummies or a boolean comparison per
+    category): the categories do not rank, and the model must
+    not be allowed to invent a ranking. Port of embarkation,
+    color, region.
+  - The notebook 4.2 heading files the dictionary-map approach
+    under "Label Encoding (for ordinal data)" and get_dummies
+    under "One-Hot Encoding (for nominal data)". Those parentheses
+    are the decision rule: ordinal data gets integer codes in a
+    chosen order, nominal data gets one-hot.
+  - KEY TERM: nominal data: categories with no inherent order.
+    KEY TERM: ordinal data: categories with an inherent order.
+    (Both defined in the preprocessing intro lecture.)
+
+9. KEY TAKEAWAYS
+  - Algorithms want numbers. Strings must be encoded.
+  - Label encoding: LabelEncoder, integers in alphabetical order.
+  - Ordinal encoding: OrdinalEncoder with categories in your
+    order, or a dictionary plus map(). Bigger number, higher
+    rank.
+  - One-hot encoding: get_dummies or a boolean comparison per
+    category. One new column per category, one hot per row.
+  - No order in the data means no order in the encoding. That is
+    what one-hot protects.
+
+10. QUIZ-SAFE FACTS
+  - Reason for encoding: most machine learning algorithms operate
+    only on numerical values.
+  - Lecture's opening mapping: high, medium, low to 2, 1, 0.
+  - Titanic: originally a Kaggle competition, now a standard
+    starter dataset for classification. Five attributes kept:
+    survived, sex, embarked, class, who. Rows with missing values
+    dropped.
+  - embarked codes: C Cherbourg, Q Queenstown, S Southampton.
+  - survived: 0 did not make it, 1 survived.
+  - LabelEncoder on sex: female 0, male 1. Order is alphabetical.
+  - OrdinalEncoder on class with order Third, Second, First:
     Third 0, Second 1, First 2.
-  - education_map: High School 0, Bachelors 1, Masters 2,
-    PhD 3.
-  - get_dummies with prefix='embarked' produces embarked_C,
-    embarked_Q, embarked_S.
-  - Titanic rows 0, 1, 5 in the one-hot demo are S, C, Q.
-  - Manual one-hot gender rows 0 and 3 are Male, rows 1 and 2
-    are Female.
-  - Ordinal encoding is for data with inherent order. One-hot
-    is for data with none. Imposing a false order risks wrong
-    modeling results.
+  - Manual ordinal: dictionary High School 0, Bachelors 1,
+    Masters 2, PhD 3, applied with map().
+  - One-hot encoding creates a new binary column per category.
+    Exactly one column is hot (1 or True) per row.
+  - get_dummies on embarked with prefix embarked produces
+    embarked_C, embarked_Q, embarked_S.
+  - Manual one-hot: (df['gender'] == 'Male').astype(int).
+  - Use one-hot when there is no inherent order, because adopting
+    an order risks assuming a wrong order in the modeling.
+  - The mapping check idiom: select the original and encoded
+    columns, then drop_duplicates().

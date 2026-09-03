@@ -1,0 +1,289 @@
+1. WHERE WE ARE
+  - Video 1 built the geometry on two dimensions and asked which
+    direction has the maximum spread. Video 2 gave the mathy
+    answer, eigenvectors of the covariance matrix. Video 3 named
+    the procedure PCA and explained why it is useful. None of it
+    ran real code you were meant to use.
+  - This video does it for real with scikit-learn on the four
+    penguin measurements, and brings back the connection with
+    scaling that has been mentioned and postponed.
+  - The setup cell imports pandas, numpy, matplotlib, and two
+    things from scikit-learn: StandardScaler from
+    sklearn.preprocessing and PCA from sklearn.decomposition. It
+    also defines the color palette used across the whole video
+    series.
+
+2. THE DATA, AND A FIRST DOSE OF REALITY
+  - The Palmer Penguins data set (Horst, Hill and Gorman 2020):
+    real measurements of 344 penguins, done by hand, with a
+    GitHub link in the notebook. Not the 2-D data set from Videos
+    1 and 2 but a four-dimensional one: bill length, bill depth,
+    flipper length, and body mass.
+  - Real data is rarely clean. A couple of penguins are missing
+    one or more of these measurements. PCA needs complete rows,
+    so the first practical step is .dropna() on those four
+    columns, and the notebook prints how many rows that costs.
+    The professor's count: 344 rows before, and dropping the NAs
+    removes two.
+  - KEY TERM: NA / dropna: NA is a missing value in a pandas
+    DataFrame. DataFrame.dropna(subset=cols) removes every row
+    that has a missing value in any of the listed columns (added
+    definition).
+
+3. THE THREE-STEP RECIPE
+  - PCA in practice is three steps:
+      Step 1. Standardize the features. Put them all on the same
+        scale.
+      Step 2. Find the components. The principal directions,
+        Video 2's eigenvectors of the covariance matrix.
+      Step 3. Project the data onto the top few components.
+  - Step 1 is why Video 2 flagged "scaling changes the answer."
+    The dimensions potentially have completely different scales
+    (millimeters versus grams). Without standardization the
+    largest-numbered feature dominates the variance for no good
+    reason, and you are comparing apples to oranges when you
+    evaluate correlations. Standardization has its own earlier
+    video in this module. Here it is just applied.
+  - The obvious question about step 3, "how do we find the top
+    few?", is answered in section 7.
+
+4. STEP 1: STANDARDIZE
+  - KEY TERM: StandardScaler: the scikit-learn class that
+    rescales each feature to mean 0 and standard deviation 1
+    (subtract the feature's mean, divide by its standard
+    deviation) (added definition of the mechanics).
+  - After this, "one unit" means the same thing on every axis,
+    namely one standard deviation, so no feature dominates just
+    because its numbers happen to be large.
+  - The notebook confirms it did what it claims by printing each
+    feature's mean and standard deviation before and after. After
+    standardization the mean of everything is 0 and the standard
+    deviation of every variable is 1.0.
+  - Usage pattern: scaler = StandardScaler(), then
+    X_std = scaler.fit_transform(df[feats]). fit learns the means
+    and standard deviations, transform applies them, and
+    fit_transform does both in one call (added explanation).
+
+5. STEP 2: FIT PCA
+  - Fit PCA on the standardized data, asking for all four
+    components for now: pca = PCA(), then pca.fit(X_std).
+  - There is no new mathematics hiding in scikit-learn. Under the
+    hood:
+      pca.components_ stores the eigenvectors of the standardized
+        covariance matrix, the principal directions from Video 2,
+        now in 4-D.
+      pca.explained_variance_ stores the matching eigenvalues,
+        the variance along each direction. This is the lambda
+        from C v = lambda v.
+      pca.n_components_ reports how many components were kept.
+        With PCA() and four features it is 4.
+  - The one interesting convenience: scikit-learn returns them
+    already sorted largest first. The biggest principal component
+    comes first, then the second biggest, and so on. That is the
+    PC1, PC2 ordering we wanted, and it comes for free.
+  - KEY TERM: fit: the scikit-learn verb for "learn from this
+    data." For PCA, fit computes the covariance of the input and
+    its eigen-decomposition and stores the results in the
+    attributes ending in an underscore (added definition). The
+    trailing underscore is the scikit-learn convention for
+    "this exists only after fit."
+
+6. THE PAYOFF: EXPLAINED VARIANCE RATIO
+  - Each eigenvalue is the variance along its component. Divide
+    each by the total variance and you get
+    pca.explained_variance_ratio_.
+  - KEY TERM: explained variance ratio: the fraction of the
+    data's total spread that each principal component captures.
+    Nothing more than the eigenvalues from Video 2, normalized to
+    sum to 1.
+  - Plotted for all four components it shows at a glance how the
+    information is distributed. See the bar chart from cell 11 of
+    8.1.pca_in_practice.ipynb. Bars are each component's own
+    share. The green line is the cumulative variance explained.
+  - The professor's penguin numbers:
+      PC1: 68.8 percent
+      PC2: 19.3 percent
+      PC3: 9.1 percent
+      PC4: 2.7 percent
+    Cumulative: two components reach 88 percent, three reach 97,
+    four reach 100.
+  - KEY TERM: cumulative variance explained: the running sum of
+    the ratios, answering "how much do the first k components
+    keep?" (added definition). The last value is always 1 (100
+    percent) when all components are kept, since the eigenvalues
+    sum to the total variance.
+
+7. SO HOW MANY COMPONENTS DO WE KEEP?
+  - The professor's pause point: is one enough? Two? Three? All
+    four? Read it straight off the bars.
+  - PC1 and PC2 together capture the great majority of the
+    variance. The cumulative line is already near the top by the
+    second component. PC3 and PC4 are the small, barely-varying
+    directions, the same situation Video 2 previewed when PC2 came
+    out tiny on the two-feature slice, now in four dimensions.
+  - Keeping the top two buys a picture you can actually see while
+    giving up very little. Two is the answer here.
+  - There are more principled ways to choose the number of
+    components, a scree plot and explicit cutoffs, covered in the
+    next video. For now, two is plainly enough for a first look.
+
+8. STEP 3: PROJECT ONTO THE TOP TWO, AND LOOK
+  - Transform the four standardized features down to their first
+    two principal components: pca2 = PCA(n_components=2), then
+    scores = pca2.fit_transform(X_std).
+  - KEY TERM: scores: the coordinates of each row in the new
+    principal component axes (added definition). The scores array
+    has one row per penguin and one column per kept component, so
+    here it is 342 rows by 2 columns. Each score is the dot
+    product of the standardized row with one eigenvector, the
+    projection from Video 1.
+  - The result: four measurements compressed into one honest 2-D
+    picture, built from the numbers alone. See the scatterplot
+    from cell 14 of 8.1.pca_in_practice.ipynb, PC1 on x, PC2 on
+    y. The professor's remark on it: the axes are normalized,
+    since the inputs had mean zero and standard deviation one
+    before they were combined and projected.
+  - This is not "we picked a feature." We picked principal
+    components, which are combinations of the different features.
+  - The plot has no labels. The original data had three kinds of
+    penguins, but everything is gray here. Nothing about species
+    was used anywhere in the recipe. What the labels reveal, and
+    what PC1 and PC2 should mean, is the next video.
+
+9. THE RECIPE ON A DIFFERENT DATA SET
+  - An example. The wine data set that ships with scikit-learn:
+    178 wines, 13 chemical measurements, no missing values. Five
+    features chosen for the example: alcohol, malic acid,
+    flavanoids, color intensity, and proline. Their raw standard
+    deviations run from 0.81 (alcohol) to 314.91 (proline), so
+    this is mixed-scale data of exactly the kind the recipe is
+    for.
+  - Code, all three steps:
+
+      import numpy as np
+      from sklearn.datasets import load_wine
+      from sklearn.preprocessing import StandardScaler
+      from sklearn.decomposition import PCA
+
+      feats = ['alcohol', 'malic_acid', 'flavanoids', 'color_intensity', 'proline']
+      df_w = load_wine(as_frame=True).frame
+      X_std = StandardScaler().fit_transform(df_w[feats]) ## step 1
+      pca = PCA().fit(X_std) ## step 2, all components
+      print(pca.explained_variance_.round(3), pca.explained_variance_ratio_.round(3),
+            np.cumsum(pca.explained_variance_ratio_).round(3), sep='\n')
+
+      scores = PCA(n_components=2).fit_transform(X_std) ## step 3
+      print(scores.shape, np.corrcoef(scores.T)[0, 1].round(6))
+
+    Output:
+
+      [2.156 1.65  0.607 0.337 0.279]
+      [0.429 0.328 0.121 0.067 0.056]
+      [0.429 0.757 0.877 0.944 1.   ]
+      (178, 2) 0.0
+
+  - Reading it. The eigenvalues (explained_variance_) are 2.156,
+    1.650, 0.607, 0.337, 0.279, already sorted largest first. They
+    sum to 5.028 (unrounded), which is the total variance of five
+    standardized features (each has variance 1 in the population
+    form, so about 5, with the small excess coming from the n - 1
+    denominator).
+    Divide each by that sum and you get the ratios: 42.9, 32.8,
+    12.1, 6.7, 5.6 percent. Cumulative: two components keep 75.7
+    percent, three keep 87.7, four keep 94.4.
+  - The scores come out 178 rows by 2 columns, and the
+    correlation between the PC1 and PC2 columns is 0.0. That is
+    the decorrelation payoff from Video 3, visible in a number.
+  - Independent check on the eigenvalues (added verification):
+    np.linalg.eigvalsh(np.cov(X_std.T)) returns the same five
+    values, in ascending order. scikit-learn's explained_variance_
+    uses the same n - 1 denominator that np.cov uses by default.
+  - This data set is less compressible than the penguins. Two
+    components hold 76 percent here versus 88 percent there. That
+    is not a failure of PCA. It means these five wine features
+    overlap less than the four penguin measurements do.
+
+10. WHAT HAPPENS IF YOU SKIP STEP 1
+  - The same five wine features fed to PCA without
+    standardization:
+
+      import numpy as np
+      from sklearn.datasets import load_wine
+      from sklearn.decomposition import PCA
+
+      feats = ['alcohol', 'malic_acid', 'flavanoids', 'color_intensity', 'proline']
+      df_w = load_wine(as_frame=True).frame
+      pca_raw = PCA().fit(df_w[feats].to_numpy()) ## no scaling on purpose
+      print(df_w[feats].var().round(1).to_dict())
+      print(pca_raw.explained_variance_ratio_.round(4), pca_raw.components_[0].round(3))
+
+    Output:
+
+      {'alcohol': 0.7, 'malic_acid': 1.2, 'flavanoids': 1.0, 'color_intensity': 5.4, 'proline': 99166.7}
+      [9.999e-01 1.000e-04 0.000e+00 0.000e+00 0.000e+00] [ 0.002 -0.001  0.002  0.002  1.   ]
+
+  - Proline is measured in the hundreds and thousands, so its
+    raw variance is 99,166.7 against 0.7 to 5.4 for the others.
+    PC1 now explains 99.99 percent of the variance and its
+    direction is (0.002, -0.001, 0.002, 0.002, 1.000): it is the
+    proline axis, full stop. PCA did not find structure. It found
+    the feature with the biggest numbers. That is the "apples to
+    oranges" problem the professor describes, and it is the whole
+    reason step 1 exists.
+
+11. WHAT IS NEXT
+  - PCA turned four correlated measurements into a single 2-D
+    picture, built from the numbers alone, with no labels. But
+    the two new axes were treated as a black box, and two
+    components were kept without a real rule.
+  - Next video: what PC1 and PC2 actually mean (loadings), how
+    many components to keep (the scree plot), and whether anything
+    is hiding in the cloud once the species come back in.
+
+12. KEY TAKEAWAYS
+  - Three steps: standardize, fit PCA to find the components,
+    project onto the top few.
+  - StandardScaler gives every feature mean 0 and standard
+    deviation 1, so no feature wins by having big numbers.
+  - pca.components_ = eigenvectors. pca.explained_variance_ =
+    eigenvalues. Sorted largest first for free.
+  - explained_variance_ratio_ = each eigenvalue over the total.
+    The cumulative sum answers "how much do the first k keep?"
+  - Penguins: 68.8, 19.3, 9.1, 2.7 percent. Two components keep
+    88 percent, so keep two.
+  - PCA(n_components=2).fit_transform(X_std) gives the scores,
+    one row per penguin, two columns.
+  - The new axes are blends of features, not features. No labels
+    were used.
+
+13. QUIZ-SAFE FACTS
+  - The Palmer Penguins data: 344 penguins, four numeric
+    features: bill length, bill depth, flipper length, body mass.
+    NAs are dropped before PCA.
+  - Imports: StandardScaler from sklearn.preprocessing, PCA from
+    sklearn.decomposition.
+  - PCA in practice is three steps: standardize, find the
+    components, project onto the top few.
+  - Standardize first because features on different scales
+    distort the covariance and the largest-numbered feature would
+    dominate.
+  - After StandardScaler, every feature has mean 0 and standard
+    deviation 1.
+  - pca.components_ holds the eigenvectors (principal
+    directions). pca.explained_variance_ holds the eigenvalues
+    (variance along each direction, lambda).
+  - scikit-learn returns components sorted largest first.
+  - explained_variance_ratio_ is each eigenvalue divided by the
+    total variance, the fraction of spread each component
+    captures. The ratios sum to 1.
+  - Penguin results: PC1 68.8 percent, PC2 19.3, PC3 9.1, PC4
+    2.7. Cumulative: 88 percent with two, 97 with three, 100
+    with four.
+  - The professor keeps two components: the vast majority of the
+    variance, and a picture you can see.
+  - Projection to two components: PCA(n_components=2) and
+    fit_transform on the standardized data.
+  - Principal components are combinations of the features, not
+    single features picked out.
+  - The 2-D projection used no species labels. Labels come in the
+    next video, along with loadings and the scree plot.

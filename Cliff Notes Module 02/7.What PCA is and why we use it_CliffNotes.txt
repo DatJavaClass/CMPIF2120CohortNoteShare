@@ -1,0 +1,233 @@
+1. THE PROCEDURE HAS A NAME
+  - Recap of the road so far. Video 1: a cloud of penguins
+    (flipper length and body mass), projected onto one direction,
+    and the spread of the projected points depends on the
+    direction you pick. Video 2: the direction of highest spread
+    comes from the eigenvectors of the covariance matrix, no
+    guessing. This video names the whole procedure and explains
+    why anyone bothers.
+  - KEY TERM: Principal Component Analysis (PCA): look at the
+    data, identify the eigenvectors of its covariance matrix, and
+    use them as new axes. Reposition the data by projecting onto
+    those axes.
+  - KEY TERM: principal components: the new axes. Written PC1,
+    PC2, PC3, and so on.
+      PC1 captures the most variance.
+      PC2 captures the most of what is left, and is perpendicular
+        to PC1.
+      PC3, PC4, and onward continue the pattern, each
+        perpendicular to all the earlier ones.
+  - Nothing here is new math. It is a name for what Video 2
+    already built. The eigenvectors are the principal components,
+    ordered by their eigenvalues (added restatement).
+  - The code in this video only generates the plots from real
+    data. Starting with the next video, the code is the kind you
+    should know how to use.
+
+2. WHY WE NEED IT: TOO MANY FEATURES TO LOOK AT
+  - A confession from the professor: the original penguin data
+    have four features, not two. Two were picked to make the
+    visualization interesting. The four are bill length, bill
+    depth, flipper length, and body mass.
+  - To see four features by eye you would look at every pair.
+    With four features that is six separate scatterplots.
+  - KEY TERM: pair plot: a grid of scatterplots, one for every
+    pair of features, with each feature's histogram on the
+    diagonal. The x-axis of column j is feature j, the y-axis of
+    row i is feature i.
+  - The count grows fast:
+      10 features: 45 plots.
+      20 features: nearly 200 (190, to be exact).
+    You cannot hold that in your head. This is the problem PCA
+    solves.
+  - Where the count comes from (added explanation): the number
+    of unordered pairs from k features is k times (k - 1) divided
+    by 2. Each feature pairs with every other one, and the
+    division by 2 stops you from counting flipper-vs-mass and
+    mass-vs-flipper as two plots. A few more values from the same
+    formula:
+      5 features: 10 plots
+      8 features: 28
+      12 features: 66
+      30 features: 435
+      50 features: 1225
+  - Reading the professor's four-feature pair plot (see the
+    figure from cell 5 of 7.1.what_pca_is.ipynb): rows and columns
+    are bill length, bill depth, flipper length, body mass in that
+    order. Diagonal tiles are histograms: x-axis is the value,
+    y-axis is how many times the value shows up. Off-diagonal
+    tiles are two-feature scatterplots. The two orange tiles are
+    flipper length versus body mass, the same pair from Videos 1
+    and 2, appearing twice because the grid shows each pair from
+    both orientations.
+
+3. THE SLICE WE KNOW IS ONE TILE
+  - The flipper-versus-mass panel is one of six views. It is the
+    exact 2-D slice from Videos 1 and 2, and it was picked by
+    hand.
+  - PCA's promise: instead of picking one pair by hand, find the
+    single best 2-D view built from all four features at once.
+  - So the goal is not "pick the two most important features."
+    It is "build two new axes out of all four" (added emphasis,
+    the distinction that section 8 of the next note relies on).
+
+4. WHY IT WORKS: FEATURES ARE REDUNDANT
+  - Why not just keep all four, if you measured four? Because
+    often some of the features are redundant.
+  - Professor's examples: height and weight normally have a lot
+    of correlation. Someone super tall and extremely skinny is
+    rare. Both measurements matter, but they do not differ a lot.
+    Sharper still: a person's left arm and right arm are almost
+    identical, so there is no need to keep both in a data set of
+    human measurements.
+  - In the pair plot, many panels are clearly tilted, meaning the
+    features move together. Flipper length and body mass rise
+    together. Bill depth trends opposite to the others.
+  - KEY TERM: redundant features: features that carry overlapping
+    information because they are correlated (added definition).
+    Knowing one tells you most of the other.
+  - That redundancy is what lets PCA compress four features into
+    two, or even one, without losing much. The leftover directions
+    barely vary, exactly as PC2 was tiny in Video 2.
+  - There are more sophisticated reasons for dimension reduction.
+    The professor offers correlation as the intuitive one: find
+    the features that correlate, remove the one that duplicates
+    another, keep the same information with fewer variables.
+  - An example. Sixty adults, four measurements: height, left arm
+    length, right arm length, weight. Left arm tracks height,
+    right arm is a near copy of left arm, and weight tracks
+    height loosely. The correlation matrix, where each entry is
+    the covariance of two features rescaled to run from -1 to 1,
+    with 1.0 on the diagonal, each feature with itself (added
+    definition):
+      height and left arm: 0.96
+      height and right arm: 0.95
+      left arm and right arm: 0.99
+      weight with each of the others: 0.75 to 0.78
+    Standardize, take the eigenvalues of the covariance matrix,
+    and the cumulative share of variance by component is
+      PC1: 90.1 percent
+      PC1 + PC2: 98.4 percent
+      PC1 + PC2 + PC3: 99.8 percent
+      all four: 100 percent
+    Four measurements, and one axis already holds 90 percent of
+    the variation. Two hold 98 percent. The other two axes are
+    measurement noise wearing a lab coat. That is redundancy, and
+    that is what PCA cashes in on.
+  - Code for that example:
+
+      import numpy as np
+
+      def pairs(k): return k * (k - 1) // 2 ## scatterplots per pair-plot
+      print([pairs(k) for k in (4, 10, 20, 50)])
+
+      rng = np.random.default_rng(7)
+      ht = rng.normal(170, 9, 60) ## height, cm
+      la = 0.44 * ht + rng.normal(0, 1.2, 60) ## left arm, cm
+      ra = la + rng.normal(0, 0.6, 60) ## right arm, near copy
+      wt = 0.9 * ht - 85 + rng.normal(0, 7, 60) ## weight, kg
+      X = np.column_stack([ht, la, ra, wt])
+      Z = (X - X.mean(axis=0)) / X.std(axis=0) ## standardize
+      evals = np.linalg.eigvalsh(np.cov(Z.T))[::-1] ## largest first
+      print(np.corrcoef(X.T).round(2), np.cumsum(evals / evals.sum()).round(3), sep='\n')
+
+    Output:
+
+      [6, 45, 190, 1225]
+      [[1.   0.96 0.95 0.78]
+       [0.96 1.   0.99 0.77]
+       [0.95 0.99 1.   0.75]
+       [0.78 0.77 0.75 1.  ]]
+      [0.901 0.984 0.998 1.   ]
+
+    The data are generated with a fixed seed, so the numbers
+    reproduce. np.linalg.eigvalsh returns only the eigenvalues,
+    ascending, which is all this check needs.
+
+5. THE TWO PAYOFFS
+  - Payoff 1, dimensionality reduction. Keep the top few
+    principal components and drop the rest. Four features become
+    two coordinates you can plot. A single 2-D picture instead of
+    six.
+  - KEY TERM: dimensionality reduction: replacing many features
+    with fewer new ones while keeping most of the information
+    (added definition). In PCA the new ones are the top principal
+    components.
+  - Payoff 2, decorrelation. The new axes are perpendicular and
+    uncorrelated (the eigen-basis from Video 2). Each principal
+    component carries independent information, with no redundancy
+    left. If something is correlated it does not make sense to
+    carry it along, and PCA identifies those correlations and
+    keeps only what is independent.
+  - KEY TERM: decorrelation: transforming the data so the new
+    coordinates have zero covariance with each other (added
+    definition). The tilt in every pair-plot tile is gone.
+
+6. THE PICTURE FROM VIDEO 2 WAS PCA
+  - Everything done on the 2-D slice generalizes. Rotating the
+    cloud onto its eigenvectors so the widest direction becomes
+    the first axis is PCA in two dimensions. See the before and
+    after figure from cell 10 of 7.1.what_pca_is.ipynb: left panel
+    is the original plot, right panel is after PCA with PC1
+    horizontal and PC2 vertical.
+  - With four features it is the same idea in 4-D: rotate onto
+    the principal components, then keep the top ones. You cannot
+    draw the 4-D rotation, but the math does not care (added
+    remark). The covariance matrix is 4 by 4, it has four
+    eigenvectors, and they are still orthonormal and still sorted
+    by variance.
+
+7. WHAT IS NEXT
+  - We know what PCA is: rotate onto the principal components,
+    keep the top ones. We know why: too many correlated features,
+    and we want a few informative ones and a picture we can see.
+  - Next video: stop drawing by hand and run PCA on the full
+    four-feature data set with scikit-learn, including the
+    practical step that has been postponed, standardization.
+
+8. KEY TAKEAWAYS
+  - PCA = find the eigenvectors of the covariance matrix, use
+    them as new axes. The axes are the principal components.
+  - PC1 holds the most variance, PC2 the most of what is left,
+    perpendicular to PC1, and so on.
+  - The penguins have four numeric features. Looking at them by
+    eye means a pair plot: six scatterplots for four features,
+    45 for ten, nearly 200 for twenty.
+  - Correlated features are redundant. Redundancy is what lets
+    PCA drop dimensions without losing much.
+  - Two payoffs: dimensionality reduction (keep the top few
+    components) and decorrelation (the new axes are uncorrelated).
+  - The Video 2 rotation was already PCA in two dimensions.
+
+9. QUIZ-SAFE FACTS
+  - Principal Component Analysis: identify the eigenvectors of
+    the covariance matrix and use them as new axes to reposition
+    the data.
+  - The new axes are called principal components: PC1, PC2, and
+    so on.
+  - PC1 captures the most variance. PC2 captures the most of what
+    is left and is perpendicular to PC1.
+  - The Palmer Penguins data have four numeric features: bill
+    length, bill depth, flipper length, body mass.
+  - Four features need six pairwise scatterplots. Ten features
+    need 45. Twenty features need nearly 200.
+  - The grid of all pairwise scatterplots is a pair plot. Its
+    diagonal shows histograms (value on x, count on y).
+  - The flipper length versus body mass slice from Videos 1 and 2
+    is one tile of the pair plot.
+  - Features are often redundant because they are correlated.
+    Professor's examples: height and weight, left arm and right
+    arm.
+  - Flipper length and body mass rise together. Bill depth trends
+    opposite to the others.
+  - The two payoffs of PCA: dimensionality reduction and
+    decorrelation.
+  - Dimensionality reduction: keep the top few principal
+    components, drop the rest.
+  - Decorrelation: the new axes are perpendicular and
+    uncorrelated, each carrying independent information.
+  - Rotating the 2-D cloud onto its eigenvectors is PCA in two
+    dimensions. With four features it is the same rotation in
+    4-D.
+  - Next step in the course: run PCA with scikit-learn, with
+    standardization as part of the process.

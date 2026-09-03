@@ -1,293 +1,285 @@
-Visualizing and Summarizing Data Using Histograms: Study Guide
-Course: Applied Predictive Modeling (CMPINF-2120)
-Source: Visualizing and summarizing data using histograms lecture transcript
+1. CENTRAL TENDENCY: MEAN, WEIGHTED MEAN
+  - The lesson is about summarizing numerical data with as few
+    numbers as possible, then drawing it as a histogram.
+  - KEY TERM: central tendency: a single number that stands for
+    the center of a set of values. The mean, median, and mode are
+    the three measures covered. (added definition)
+  - KEY TERM: mean (average): with N data points x sub i, add
+    them up and divide by N. Surprisingly common and very
+    effective as a measure of the center.
+  - KEY TERM: weighted arithmetic mean (weighted average): when
+    each value carries a weight, multiply each value by its
+    weight, add those products up, and divide by the SUM OF THE
+    WEIGHTS, not by N. The assumption is that all weights are
+    positive, so the sum of weights can never be zero and you
+    never divide by zero. The class will definitely use this.
+  - For example, three quiz scores of 88, 72, and 95 with weights
+    0.2, 0.3, and 0.5. The plain mean is (88 + 72 + 95) / 3 =
+    85.0. The weighted mean is (88 * 0.2 + 72 * 0.3 + 95 * 0.5)
+    / (0.2 + 0.3 + 0.5) = 86.7 / 1.0 = 86.7. The heavy weight on
+    the 95 pulls the answer up. Dividing by the weight sum is
+    what keeps the result on the same scale as the scores. With
+    weights 0.4, 0.6, and 1.0 (sum 2) the weighted sum is 173.4.
+    Dividing by N gives 57.8. Dividing by the weight sum gives
+    the correct 86.7. (added explanation)
 
-================================================================
-1. CENTRAL TENDENCY: MEAN AND WEIGHTED MEAN
-================================================================
-  - KEY TERM: central tendency: a measure of the center of a
-    set of numerical data.
-  - KEY TERM: mean (average): add up the N data points x_i and
-    divide by N. Very common and very effective as a measure of
-    the center.
+2. MEDIAN AND MODE
+  - KEY TERM: median: sort the values from lowest to highest and
+    take the one exactly on the border between the lower half and
+    the upper half. With an odd count that is the middle value.
+    With an even count there is no single middle value, so the
+    median is defined as the mean of the two middle values.
+  - For example, the values 15, 2, 9, 4, 11 sort to 2, 4, 9, 11,
+    15 and the median is 9. Drop the 11 and you have 2, 4, 9, 15,
+    an even count, so the median is (4 + 9) / 2 = 6.5.
+  - KEY TERM: mode: the value that appears most often, the one
+    with the highest frequency.
+      KEY TERM: unimodal: one value has the top frequency.
+      KEY TERM: bimodal: two values tie for the top frequency.
+      Three or more tied at the top: trimodal and so on (added
+        term, the lecture names only unimodal and bimodal). The
+        lecture's wording for three: three numbers that all have
+        the exact same frequency, and that frequency is the
+        highest over everybody else.
+      If every value shows up only once, there is no mode. There
+        is no point in calling every number the mode.
+  - For example, 2, 5, 5, 8, 9, 9, 9 is unimodal with mode 9. The
+    set 1, 4, 4, 6, 6 is bimodal with modes 4 and 6. The set 3,
+    8, 1 has no mode.
+  - KEY TERM: frequency: how many times a value occurs in the
+    data. The y-axis of every histogram in this lesson. (added
+    definition)
 
-      mean = ( x_1 + x_2 + ... + x_N ) / N
+3. SYMMETRIC VERSUS SKEWED DATA
+  - In the ideal symmetric case the mean, median, and mode are
+    all the same value (see the lecture's symmetric distribution
+    plot). This almost never happens in real life.
+  - KEY TERM: skew: the direction in which a distribution's tail
+    stretches, which pulls the mean away from the median and
+    mode. (added definition)
+      KEY TERM: positively skewed: mean > median > mode.
+      KEY TERM: negatively skewed: mean < median < mode.
+  - The salary example. Plot employee salaries with frequency on
+    the y-axis. Once the CEO is included, the mean lands to the
+    right of the median, because that is how the math works out:
+    one huge value drags the sum, and therefore the mean, upward,
+    while the median only cares about which value sits in the
+    middle of the sorted list. (added explanation)
+  - For example, eight salaries in thousands: 42, 45, 48, 50, 52,
+    55, 60, 400. The mean is 94.0. The median is 51.0. Nobody but
+    the 400 earns anywhere near 94, so "the average salary here
+    is 94" is true and useless.
+  - Takeaway: the average is good, but it should never be the
+    only number you report. Outliers like the CEO artificially
+    inflate it.
 
-  - KEY TERM: weighted arithmetic mean (weighted average):
-    multiply each value by its weight w_i, add them up, then
-    divide by the sum of the weights, NOT by N.
+4. DISPERSION: WHY THE MEAN IS NOT ENOUGH
+  - KEY TERM: dispersion: how spread out the data is around its
+    center.
+  - The lecture's demonstration uses three datasets with exactly
+    the same average but very different shapes: one spread
+    uniformly across its range, one pinned to a single value, and
+    one bimodal with half the values at each extreme.
+  - For example, ten test scores in each of three classes, all
+    three with mean 80.0:
+      Class 1: 60, 70, 80, 90, 100 twice over. Uniform across the
+        range. Variance 200.0, standard deviation 14.14.
+      Class 2: ten scores of 80. Pinpoint. Variance 0, standard
+        deviation 0. The mean describes every student perfectly.
+      Class 3: 60 and 100 alternating. Bimodal. Variance 400.0,
+        standard deviation 20.0. Nobody scored 80. The mean
+        describes no student at all.
+  - The lecture's framing for the bimodal case: movie ratings from
+    1 to 5 where half the audience hates the film and half loves
+    it. Calling it "an average movie" does not do it justice. The
+    fix is to plot the distribution and see the shape.
+  - KEY TERM: uniform distribution: every value in the range
+    occurs with about the same frequency. (added definition)
+  - KEY TERM: bimodal distribution: two separate peaks of
+    frequency. In the lecture's example, equal numbers of ones
+    and fives.
+  - KEY TERM: range: the distance from the minimum value to the
+    maximum value. (added definition)
 
-      weighted mean = sum( w_i * x_i ) / sum( w_i )
+5. QUARTILES, PERCENTILES, BOXPLOTS, IQR
+  - KEY TERM: quartiles: split the sorted data at five points of
+    importance, which makes four chunks. Q1 is the bottom 25th
+    percentile, meaning the bottom quarter of the data falls
+    below it. Q2 is the median. Q3 is the 75th percentile.
+  - The lecture's recipe for finding them by hand: find the
+    median (Q2). Then take the lower half, from the minimum up to
+    the median, and find its median. That is Q1. Do the same for
+    the upper half, from the median to the maximum. That is Q3.
+  - KEY TERM: percentile: the same idea with 100 chunks instead
+    of four. The p-th percentile is the value below which p
+    percent of the data falls. (added definition)
+  - KEY TERM: boxplot: a drawing of the five-number summary.
+    Bottom line is the minimum, top line is the maximum, the
+    box runs from Q1 (bottom edge) to Q3 (top edge), and the line
+    inside the box is the median. Good for comparing many sources
+    or many points in time side by side.
+  - KEY TERM: five-number summary: minimum, Q1, median, Q3,
+    maximum.
+  - KEY TERM: interquartile range (IQR): the height of the box,
+    Q3 minus Q1.
+  - Outlier rule: the definition normally used is that a value
+    more than 1.5 times the IQR beyond the box is an outlier
+    (above Q3 by more than 1.5 IQR, or below Q1 by more than 1.5
+    IQR). The lecture's boxplot slide marks the identified
+    outliers in the yellow area.
+  - For example, ten sorted values: 3, 5, 7, 8, 12, 13, 14, 18,
+    21, 40. Even count, so the median is (12 + 13) / 2 = 12.5.
+    Lower half 3, 5, 7, 8, 12 has median 7, so Q1 = 7. Upper half
+    13, 14, 18, 21, 40 has median 18, so Q3 = 18. IQR = 18 - 7 =
+    11. The fences (outlier cutoffs) sit at 7 - 1.5 * 11 = -9.5
+    and 18 + 1.5 * 11 = 34.5. The 40 is past the upper fence, so
+    it is the outlier. Minimum 3, maximum 40, range 37.
 
-  - Assumption: all weights are positive, so their sum can
-    never be zero (no divide by zero).
-  - The weighted mean will definitely be used in this class.
-
-================================================================
-2. MEDIAN
-================================================================
-  - KEY TERM: median: sort the data, then take the value at the
-    border between the lower half and the upper half.
-  - Procedure: arrange observations from lowest to highest and
-    pick the middle one.
-  - Odd count: 3, 3, 5, 9, 11 has median 5.
-  - Even count: no single middle value, so the median is the
-    mean of the two middle values. 3, 5, 7, 9 has median
-    (5 + 7) / 2 = 6.
-
-================================================================
-3. MODE
-================================================================
-  - KEY TERM: frequency: the number of times a value appears in
-    the data (added definition).
-  - KEY TERM: mode: the value with the highest frequency (the
-    one that appears most often).
-  - One value holds the top frequency: unimodal distribution.
-  - Two values tie for it: bimodal.
-  - Three or more tie for it: the lecture's example is three
-    values sharing the exact same top frequency. General name:
-    multimodal (added term).
-  - Every value appears only once: no mode. Transcript wording
-    is garbled ("no point in making a mode being all the
-    numbers"). Read as: calling every value the mode is
-    pointless.
-
-================================================================
-4. SYMMETRIC VS. SKEWED DATA
-================================================================
-  - Ideal (symmetric) case: mean, median, and mode are all the
-    same value. This almost never happens in real life.
-  - KEY TERM: skewed data: a distribution whose mean, median,
-    and mode are pulled apart in one direction (added
-    definition).
-  - Positively skewed: mean > median > mode.
-  - Negatively skewed: mean < median < mode.
-  - Salary example: y-axis is frequency (how many employees
-    earn a given salary). Including the CEO puts the mean to
-    the right of the median.
-  - KEY TERM: outlier: a value far from the rest of the data
-    (added definition). The CEO salary is the outlier. It skews
-    things and artificially inflates the mean.
-  - Lesson: the average is good, but it should not be the only
-    number you get.
-
-================================================================
-5. DISPERSION: THE THREE-DATASET EXAMPLE
-================================================================
-  - KEY TERM: dispersion: how spread out the data are.
-  - Three datasets, all values between 1 and 5, all with exactly
-    the same average:
-
-      Dataset 1: 1, 2, 3, 4, 5, 1, 2, 3, 4, 5   (uniform)
-      Dataset 2: all threes                    (pinpoint)
-      Dataset 3: 1, 5, 1, 5, 1, 5, 1, 5, 1, 5   (bimodal)
-
-  - Arithmetic check (added): each dataset averages 3.
-  - The average fits dataset 2 perfectly (every value equals
-    it, "all the money is on three") and dataset 1 reasonably
-    (values sit around it). For dataset 3 the average is a
-    problem.
-  - Movie-rating reading of dataset 3 (1 worst, 5 best): half
-    the people hate the movie, half love it. Calling it "an
-    average movie" does not do it justice. Plot the
-    distribution instead to see how the data spread across the
-    range.
-
-================================================================
-6. RANGE, QUARTILES, PERCENTILES
-================================================================
-  - KEY TERM: range: the difference between the minimum and the
-    maximum value. Transcript says "between the mean and the
-    max value". Read as min and max.
-  - Quartiles: split the distribution at five points of
-    importance (min, Q1, Q2, Q3, max), giving four chunks. The
-    lecture calls the chunks Q1 to Q4.
-  - KEY TERM: quartile: a cut point that divides sorted data
-    into four equal-count parts (added definition).
-  - Q1 is the 25th percentile: the bottom quarter of the data
-    falls below it. Q2 is the median.
-  - Finding Q1: take the data from the minimum up to the median
-    and find the median of that lower half. Transcript says
-    "from the mean up until the median". Read as the minimum.
-  - Finding Q3: the median of the upper half (Q2 to max).
-  - KEY TERM: percentile: the same idea with 100 sets instead of
-    four. The p-th percentile is the value below which p percent
-    of the data fall (added definition).
-
-================================================================
-7. BOXPLOTS AND THE IQR
-================================================================
-  - KEY TERM: boxplot: a picture of the five-number summary of a
-    distribution: minimum, Q1, median, Q3, maximum. Good for
-    comparing multiple sources or points in time.
-  - Layout: box bottom = Q1, box top = Q3, line inside the box
-    = median, bottom line = minimum, top line = maximum.
-  - KEY TERM: interquartile range (IQR): the height of the box.
-
-      IQR = Q3 - Q1
-
-  - Outlier rule as the lecture states it: a value higher or
-    lower than 1.5 times the IQR is an outlier. Standard form
-    (added): below Q1 - 1.5 * IQR or above Q3 + 1.5 * IQR. The
-    lecture figure marks its outliers inside a yellow area.
-
-================================================================
-8. VARIANCE AND STANDARD DEVIATION
-================================================================
-  - KEY TERM: variance: a measure of dispersion, the average of
-    the squared differences between each value x_i and the
-    mean x_bar. Transcript says "X hat". Read as x-bar, the
-    usual symbol for the mean.
-
-      variance = ( (x_1 - x_bar)^2 + ... + (x_N - x_bar)^2 ) / N
-
-  - Procedure: difference from the average, square it, add the
-    squares, divide by N.
+6. VARIANCE AND STANDARD DEVIATION
+  - A second way to measure dispersion, next to plotting it.
+  - KEY TERM: variance: for each value x sub i, take its
+    difference from the average, square that difference, add all
+    the squares up, and divide by n.
   - KEY TERM: standard deviation: the square root of the
-    variance.
+    variance. It is back in the original units, which is why it
+    is the number people quote. (last sentence added)
+  - Why square? Differences above and below the mean would cancel
+    if you just added them (the sum of raw differences from the
+    mean is always zero). Squaring makes every difference
+    positive and makes big misses count for more than small
+    ones. (added explanation)
+  - The lecture's verdict: the average plus this one extra number
+    is a good statistic to have about any numerical data.
+  - For example, the values 6, 8, 10, 12, 14. Mean 10. Differences
+    from the mean: -4, -2, 0, 2, 4. Squared: 16, 4, 0, 4, 16. Sum
+    40, divided by n = 5 gives variance 8.0. Square root gives
+    standard deviation 2.83.
 
-      sd = sqrt( variance )
+7. HISTOGRAMS
+  - KEY TERM: histogram: a plot representing the frequencies of
+    the data as rectangles. The trick is that you do not always
+    give every value its own rectangle. You combine values into
+    buckets.
+  - KEY TERM: bucket (bin): a range of values that share one
+    rectangle in a histogram. (added definition)
+  - Two main types:
+      KEY TERM: equal width histogram: each bucket covers the
+        same portion of the x-axis. The range of each bucket is
+        fixed.
+      KEY TERM: equal frequency (equal height) histogram: the
+        buckets are built so that each one's frequency, its
+        height on the y-axis, is about constant. "About" because
+        fractions are not allowed, as the construction shows.
+  - The trivial histogram gives every distinct value its own
+    bucket. That looks reasonable for a small dataset but on any
+    real data you cannot see what is going on, which is why you
+    combine values into range buckets.
+  - The lecture works its examples on a table of store prices
+    with a count of how often each price appears. The examples
+    below use a different price table so you can check the
+    method rather than memorize the answer.
 
-  - Why it matters: the average plus this one spread number is a
-    good statistic for any numerical data.
-  - Note (added): dividing by N gives the population variance.
-    Sample variance divides by N - 1. The lecture divides by N.
+8. BUILDING AN EQUAL WIDTH HISTOGRAM
+  - The recipe:
+      Range = max minus min plus 1.
+      Width = range divided by the number of buckets you were
+        told to use.
+      First bucket starts at the minimum and covers one width.
+        Each next bucket starts where the last one ended.
+      Add up the frequencies of the values that fall in each
+        bucket.
+  - For example, prices and counts:
 
-================================================================
-9. HISTOGRAMS: TWO TYPES
-================================================================
-  - KEY TERM: histogram: a plot of the frequencies of the data
-    as rectangles, values (or ranges of values) on the x-axis
-    and frequency on the y-axis.
-  - KEY TERM: bucket (also called a bin, added term): a range
-    of values combined into one rectangle. The trick of a
-    histogram is combining values into buckets instead of
-    always plotting single values. One bar per value is fine
-    for a small dataset, but with real data you cannot see
-    what is going on.
-  - Equal width: every bucket covers the same portion of the
-    x-axis. Transcript says "equal with". Read as equal width.
-  - Equal frequency (equal height): buckets are built so every
-    bar reaches about the same height on the y-axis.
+      price:  1  4  7  9 11 12 15 17 19 22 24
+      count:  3  6  2  5  7  4  9  3  5  2  4
 
-================================================================
-10. THE SAMPLE DATASET (STORE PRICES)
-================================================================
-  - Store prices from 1 to 30, tabulated as price and count
-    (how many times that price appears):
+    Total count is 50. Suppose four buckets. Range is 24 - 1 + 1
+    = 24. Width is 24 / 4 = 6. Buckets are 1 to 6, 7 to 12, 13
+    to 18, and 19 to 24.
+      1 to 6 holds prices 1 and 4: frequency 3 + 6 = 9.
+      7 to 12 holds 7, 9, 11, 12: frequency 2 + 5 + 7 + 4 = 18.
+      13 to 18 holds 15 and 17: frequency 9 + 3 = 12.
+      19 to 24 holds 19, 22, 24: frequency 5 + 2 + 4 = 11.
+    Check: 9 + 18 + 12 + 11 = 50. The heights vary, the widths
+    do not. That is the whole definition.
 
-      price:  1  5  8 10 12 14 15 18 20 21 25 28 30
-      count:  2  5  2  4  1  3  6  8  7  4  5  2  3
+9. BUILDING AN EQUAL FREQUENCY HISTOGRAM
+  - The recipe:
+      Add up all the counts to get the total frequency.
+      Target height = total divided by the number of buckets.
+      Walk the values in order, adding counts into the current
+        bucket. This is a little bit like counting cards in
+        poker.
+      When adding the next value would cross the target, compare
+        the running total just below the target with the running
+        total just above it. Whichever is CLOSER to the target
+        wins. It is not poker: going over does not lose. The
+        value that was left out starts the next bucket. (added:
+        a running total that lands exactly on the target is the
+        closest possible, so stop there.)
+      Do the math for the last bucket too, even though it takes
+        whatever is left. If the last bucket does not check out,
+        something went wrong earlier. (The professor's advice
+        for multiple choice is the same: look at all the answers
+        before deciding.)
+  - For example, the same price table with three buckets. Total
+    is 50, target is 50 / 3 = 16.67.
+      Bucket 1: 3 (price 1), then 9 (price 4), then 11 (price
+        7), then 16 (price 9). Adding 11's count of 7 would make
+        23.
+        Compare 16 and 23 against 16.67: 16 is closer. Stop.
+        Bucket 1 is prices 1 through 9, frequency 16.
+      Bucket 2: 7 (price 11), then 11 (price 12), and adding
+        15's count of 9 makes 20. Compare 11 and 20
+        against 16.67: 20 is 3.33 away, 11 is 5.67 away, so 20
+        wins and 15 is included. Bucket 2 is prices 11 through
+        15, frequency 20.
+      Bucket 3: 3 (price 17), 8 (price 19), 10 (price 22), 14
+        (price 24). Never reaches the target, and nothing is left
+        over.
+        Bucket 3 is prices 17 through 24, frequency 14.
+    Check: 16 + 20 + 14 = 50. Heights are 16, 20, 14, all near
+    the target of 16.67. Widths on the x-axis are 1 to 9, 11 to
+    15, 17 to 24, nowhere near equal. That is the trade the
+    equal frequency histogram makes.
 
-  - The transcript states the counts for 1, 5, 8, and 10 up
-    front and the rest during the worked examples. The count
-    for 12 is implied by "1 plus 3 makes 4" when 12 and 14 are
-    added.
-  - Total count: 52.
-  - Trivial histogram: every price is its own bucket (13 bars,
-    added count). Fine here because there are few items.
+10. KEY TAKEAWAYS
+  - Mean is the workhorse but is dragged by outliers. Median is
+    the middle of the sorted list. Mode is the most frequent
+    value.
+  - Weighted mean divides by the sum of the weights.
+  - Positive skew: mean > median > mode. Negative skew: the
+    reverse. Symmetric: all three equal, almost never in real
+    data.
+  - Same mean, different shapes: always look at the distribution.
+  - Five-number summary drives the boxplot. IQR = Q3 - Q1.
+    Outliers sit more than 1.5 IQR outside the box.
+  - Variance = mean of squared differences from the mean.
+    Standard deviation = its square root.
+  - Equal width: fix the x-axis chunk. Equal frequency: fix the
+    y-axis height and pick the running total closest to the
+    target at each break.
 
-================================================================
-11. WORKED EXAMPLE: EQUAL WIDTH, THREE BUCKETS
-================================================================
-  - Step 1: total range = max - min + 1 = 30 - 1 + 1 = 30. The
-    +1 counts both integer endpoints (added), unlike the plain
-    max minus min range in section 6.
-  - Step 2: width per bucket = range / number of buckets
-    = 30 / 3 = 10.
-  - Step 3: start at the minimum (1). Bucket ranges are 1-10,
-    11-20, 21-30. Transcript says "bucket rates". Read as
-    bucket ranges.
-  - Step 4: add the counts inside each range:
-
-      Bucket 1 (1-10, red):     1, 5, 8, 10        -> 13
-      Bucket 2 (11-20, green):  12, 14, 15, 18, 20 -> 25
-      Bucket 3 (21-30, purple): 21, 25, 28, 30     -> 14
-
-  - Arithmetic check (added): 2+5+2+4 = 13, 1+3+6+8+7 = 25,
-    4+5+2+3 = 14, and 13 + 25 + 14 = 52. Matches the lecture.
-
-================================================================
-12. WORKED EXAMPLE: EQUAL HEIGHT, FOUR BUCKETS
-================================================================
-  - Step 1: total count = 2 + 5 + 2 + 4 + ... = 52 (every item
-    stacked into one bar).
-  - Step 2: target height = 52 / 4 = 13 per bucket. Heights are
-    only "about" 13 because fractions of an item are not
-    allowed.
-  - Rule: walk the prices in order and keep a running frequency
-    (the lecturer compares it to counting cards). At the
-    threshold, compare the running total just before crossing
-    13 with the one just after, and keep whichever is closest
-    to 13. Going over does not lose (this is not poker).
-
-  - Bucket 1: 1 (2), 5 (2+5 = 7), 8 (7+2 = 9), 10 (9+4 = 13).
-    Exactly 13. Bucket 1 = prices 1 through 10, frequency 13.
-  - Bucket 2: 12 (1), 14 (1+3 = 4), 15 (4+6 = 10). Adding 18
-    would give 10+8 = 18. Choice: 10 or 18. 10 is closer to 13,
-    so stop at 15. Bucket 2 = prices 12 through 15, frequency
-    10. Price 18 starts bucket 3.
-  - Bucket 3: 18 (8), 20 (8+7 = 15). Choice: 8 or 15. 15 is
-    closer to 13, so include 20. Bucket 3 = prices 18 through
-    20, frequency 15.
-  - Bucket 4: 21 (4), 25 (4+5 = 9), 28 (9+2 = 11), 30
-    (11+3 = 14). Frequency 14. Between 11 and 14, 14 is closer
-    to 13, so the last bucket checks out with no leftovers.
-    The lecturer says to do this math on the last bucket too.
-
-  - Summary:
-
-      Bucket 1:  1-10   frequency 13
-      Bucket 2: 12-15   frequency 10
-      Bucket 3: 18-20   frequency 15
-      Bucket 4: 21-30   frequency 14
-
-  - Arithmetic check (added): 13 + 10 + 15 + 14 = 52. Matches.
-
-================================================================
-13. KEY TAKEAWAYS
-================================================================
-  - Center: mean, weighted mean (divide by the sum of positive
-    weights), median (middle of sorted data), mode (most
-    frequent value).
-  - Symmetric: mean = median = mode. Positive skew: mean >
-    median > mode. Negative skew: mean < median < mode.
-    Outliers like a CEO salary inflate the mean, so never
-    trust the average alone.
-  - Spread: range, quartiles and percentiles, the boxplot
-    five-number summary with IQR = Q3 - Q1, variance, and
-    standard deviation (its square root).
-  - Histograms plot frequencies as rectangles over buckets.
-    Equal width fixes each bucket's x-axis span: range =
-    max - min + 1, width = range / buckets, then add the
-    counts in each range.
-  - Equal height fixes each bucket's target y-axis height:
-    target = total count / buckets, accumulate running
-    frequencies, stop at the running total closest to the
-    target.
-
-================================================================
-14. QUIZ-SAFE FACTS
-================================================================
-  - Weighted mean divides by the sum of the weights, not by N.
-    Weights must be positive.
-  - Median of 3, 3, 5, 9, 11 is 5. Median of 3, 5, 7, 9 is 6.
-  - Unimodal: one mode. Bimodal: two. All values unique: no
-    mode.
+11. QUIZ-SAFE FACTS
+  - Weighted arithmetic mean: sum of (value times weight) divided
+    by the sum of the weights. Weights assumed positive.
+  - Median of an even-count set: mean of the two middle values.
+  - Unimodal, bimodal, or three or more tied at the top. All
+    values appearing once: no mode.
   - Positively skewed: mean > median > mode. Negatively skewed:
     mean < median < mode.
-  - Three datasets with the same average: 1-5 uniform, all
-    threes, 1/5 alternating (bimodal). The average misleads on
-    the bimodal one.
-  - Five-number summary: min, Q1, median, Q3, max.
-  - Q1 = 25th percentile = median of the lower half. Q2 =
-    median. Q3 = median of the upper half.
-  - IQR = Q3 - Q1. The outlier rule uses 1.5 times the IQR.
-  - Variance: squared differences from the mean, summed,
-    divided by N. Standard deviation: its square root.
-  - Equal width, 3 buckets on prices 1-30: range 30, width 10,
-    buckets 1-10, 11-20, 21-30, frequencies 13, 25, 14.
-  - Equal height, 4 buckets: total 52, target 13, buckets 1-10
-    (13), 12-15 (10), 18-20 (15), 21-30 (14).
-  - Equal-height tie-break: keep the running total closest to
-    the target, under or over.
+  - Quartiles: five points of importance, four chunks. Q1 = 25th
+    percentile, Q2 = median, Q3 = 75th percentile. Q1 is the
+    median of the lower half, Q3 the median of the upper half.
+  - Boxplot five-number summary: minimum, Q1, median, Q3,
+    maximum. Box from Q1 to Q3, line inside at the median.
+  - IQR = Q3 - Q1. Outlier: more than 1.5 times the IQR outside
+    the box.
+  - Variance: squared differences from the average, summed,
+    divided by n. Standard deviation: square root of variance.
+  - Histogram types: equal width and equal frequency (equal
+    height).
+  - Equal width range: max - min + 1. Width: range / number of
+    buckets.
+  - Equal frequency target: total count / number of buckets. At
+    each break pick the running total closest to the target.
