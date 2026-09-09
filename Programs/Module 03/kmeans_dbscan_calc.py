@@ -1,5 +1,5 @@
 ## University of Pittsburgh - CMPINF 2120 Applied Predictive Modeling
-## k-means bare metal calculator, stdlib only
+## k-means and DBSCAN bare metal calculator, stdlib only
 ## no flags = prompts, -h = flags
 
 import argparse, math, random, sys
@@ -110,7 +110,7 @@ def wcss(pts, cents, lab, verbose=True):
         print(f"WCSS = {' + '.join(num(r[2]) for r in rows)} = {num(tot)}")
     return tot
 
-def silhouette(pts, lab):
+def silhouette(pts, lab, ids=None): ## ids = display ids override
     hr("SILHOUETTE: s = (b - a) / max(a, b)")
     k, rows, scores = max(lab) + 1, [], []
     if k < 2: print("needs k >= 2"); return None
@@ -120,7 +120,7 @@ def silhouette(pts, lab):
         a, b = (sum(own) / len(own) if own else 0.0), min(others)
         s = (b - a) / max(a, b) if own and max(a, b) else 0.0 ## singleton = 0, sklearn rule
         scores.append(s)
-        rows.append([pid(i), f"C{lab[i]}", a, b, s])
+        rows.append([ids[i] if ids else pid(i), f"C{lab[i]}", a, b, s])
     table(["#", "cluster", "a (own)", "b (next)", "s"], rows)
     print(f"mean silhouette = {num(sum(scores))} / {len(scores)} = {num(sum(scores) / len(scores))}  (+1 tight, 0 boundary, -1 wrong cluster)")
     return sum(scores) / len(scores)
@@ -165,41 +165,126 @@ def ask_data():
     if rows: DATA = rows
     else: print("no rows, keeping built in data")
 
+## DBSCAN, lecture 4
+def ids(s): return "{" + ", ".join(str(pid(i)) for i in sorted(s)) + "}"
+
+def neighbors(pts, eps): return [[j for j in range(len(pts)) if j != i and dist(pts[i], pts[j]) <= eps] for i in range(len(pts))]
+
+def classify(nb, min_pts, self_counts):
+    core = {i for i in range(len(nb)) if len(nb[i]) + self_counts >= min_pts}
+    border = {i for i in range(len(nb)) if i not in core and any(j in core for j in nb[i])}
+    return core, border, set(range(len(nb))) - core - border
+
+def dbscan(pts, eps, min_pts, self_counts, verbose=True):
+    nb = neighbors(pts, eps)
+    core, border, noise = classify(nb, min_pts, self_counts)
+    if verbose:
+        hr(f"STEP 3: neighbors within eps = {num(float(eps))} (distance <= eps)")
+        print(f"minPts = {min_pts}, a point {'counts' if self_counts else 'does not count'} itself")
+        print(f"{'#':>6}  {'count':>5}  {'type':<6}  neighbors")
+        for i in range(len(pts)): print(f"{pid(i):>6}  {len(nb[i]) + self_counts:>5}  {'core' if i in core else 'border' if i in border else 'noise':<6}  {ids(nb[i])}")
+        print("core = count >= minPts, border = not core but touches a core, noise = neither")
+
+    lab, k, log = [-1] * len(pts), 0, []
+    for s in sorted(core): ## flood fill from each unclaimed core
+        if lab[s] >= 0: continue
+        lab[s], stack, grew = k, [s], [s]
+        while stack:
+            c = stack.pop(0)
+            for j in nb[c]:
+                if lab[j] >= 0: continue
+                lab[j] = k
+                grew.append(j)
+                if j in core: stack.append(j) ## only cores keep expanding
+        log.append((k, s, grew))
+        k += 1
+    if verbose:
+        hr("STEP 4: grow clusters from cores (border joins first cluster to reach it)")
+        for c, s, grew in log: print(f"C{c}: seed {pid(s)} -> reach order [{', '.join(str(pid(i)) for i in grew)}]")
+        if border: print(f"relabeled: {ids(border)} were noise on their own visit, a core reached them, now border")
+        shared = [i for i in border if len({lab[j] for j in nb[i] if j in core}) > 1]
+        if shared: print(f"NOTE: border point(s) {ids(shared)} touch more than one cluster, order decided")
+    return lab, core, border, noise
+
+def db_report(pts, lab, core, border, noise, sil):
+    k = max(lab) + 1
+    hr(f"RESULT: {k} cluster(s), {len(noise)} noise")
+    for c in range(k):
+        m = {i for i in range(len(pts)) if lab[i] == c}
+        print(f"C{c} ({len(m)}): cores {ids(m & core)}  borders {ids(m & border)}")
+    print(f"noise: {ids(noise)}")
+    if sil and k >= 2:
+        keep = [i for i in range(len(pts)) if lab[i] >= 0]
+        print("(silhouette over clustered points only, noise dropped)")
+        silhouette([pts[i] for i in keep], [lab[i] for i in keep], [pid(i) for i in keep])
+
+def kdist(pts, min_pts, self_counts):
+    kth = min_pts - self_counts ## distance to the kth other point
+    hr(f"K-DISTANCE: distance to nearest other point number {kth}, sorted (elbow = eps)")
+    d = sorted(sorted(dist(p, q) for q in pts if q is not p)[kth - 1] for p in pts) if 0 < kth < len(pts) else []
+    if not d: print("minPts too big for this data"); return
+    table(["rank", "kdist"], [[r, v] for r, v in enumerate(d, 1)], 10)
+    jumps = [d[i] - d[i - 1] for i in range(1, len(d))]
+    if jumps: print(f"largest jump after rank {jumps.index(max(jumps)) + 1}: eps around {num(d[jumps.index(max(jumps))])} to {num(d[jumps.index(max(jumps)) + 1])}")
+
+def eps_sweep(pts, eps_list, min_pts, self_counts):
+    hr(f"SWEEP: eps in {[num(float(e)) for e in eps_list]} with minPts = {min_pts}")
+    rows = []
+    for e in eps_list:
+        lab, core, border, noise = dbscan(pts, e, min_pts, self_counts, verbose=False)
+        rows.append([num(float(e)), max(lab) + 1, len(core), len(border), len(noise)])
+    table(["eps", "clusters", "core", "border", "noise"], rows)
+
 def interactive(ap):
     global BASE
+    algo = ask("algorithm: kmeans / dbscan", "kmeans")
     BASE = int(ask("point numbering starts at 0 or 1", str(BASE)))
     if ask("edit the data set? y/N", "n").lower() == "y": ask_data()
-    argv = ["--base", str(BASE), "-k", ask("k", "3")]
-    how = ask("init: index / coords / random / kmeans++ / farthest", "index")
-    argv += ["--init", how]
-    if how == "index": argv += ["--spec", ask("point ids for initial centroids", ",".join(str(pid(i)) for i in range(int(argv[3]))))]
-    elif how == "coords": argv += ["--spec", ask("centroid coords x,y;x,y")]
-    else: argv += ["--seed", ask("seed", "0")]
+    argv = ["--algo", algo, "--base", str(BASE)]
+    if algo == "dbscan":
+        argv += ["--eps", ask("eps (radius)", "1.5"), "--min-pts", ask("minPts", "3")]
+        if ask("does a point count itself toward minPts? Y/n", "y").lower() == "n": argv.append("--no-self")
+    else:
+        argv += ["-k", ask("k", "3")]
+        how = ask("init: index / coords / random / kmeans++ / farthest", "index")
+        argv += ["--init", how]
+        if how == "index": argv += ["--spec", ask("point ids for initial centroids", ",".join(str(pid(i)) for i in range(int(argv[-3]))))]
+        elif how == "coords": argv += ["--spec", ask("centroid coords x,y;x,y")]
+        else: argv += ["--seed", ask("seed", "0")]
+        argv += ["--max-iter", ask("max iterations (timeout)", "100")]
     if ask("standardize features? y/N", "n").lower() == "y": argv.append("--std")
-    argv += ["--max-iter", ask("max iterations (timeout)", "100")]
     if ask("silhouette? Y/n", "y").lower() == "n": argv.append("--no-sil")
-    e = ask("elbow sweep up to k = (blank skips)")
-    if e: argv += ["--elbow", e]
+    if algo == "dbscan":
+        if ask("k-distance table for picking eps? y/N", "n").lower() == "y": argv.append("--kdist")
+        s = ask("sweep eps values, e.g. 1,1.5,2 (blank skips)")
+        if s: argv += ["--sweep", s]
+    else:
+        e = ask("elbow sweep up to k = (blank skips)")
+        if e: argv += ["--elbow", e]
     return ap.parse_args(argv)
 
 def main():
     global BASE
-    ap = argparse.ArgumentParser(description="k-means, step by step")
-    ap.add_argument("-k", type=int, default=3)
+    ap = argparse.ArgumentParser(description="k-means or DBSCAN, step by step")
+    ap.add_argument("--algo", choices=["kmeans", "dbscan"], default="kmeans")
+    ap.add_argument("--std", action="store_true", help="z-score features first")
+    ap.add_argument("--no-sil", action="store_true", help="skip silhouette")
+    ap.add_argument("--base", type=int, choices=[0, 1], default=BASE, help="point numbering start")
+    ap.add_argument("-k", type=int, default=3, help="kmeans: clusters")
     ap.add_argument("--init", choices=["index", "coords", "random", "kmeans++", "farthest"], default="index")
     ap.add_argument("--spec", help="index: ids 2,4,9  coords: 1,2;5,6")
     ap.add_argument("--seed", type=int, default=0)
-    ap.add_argument("--std", action="store_true", help="z-score features first")
     ap.add_argument("--max-iter", type=int, default=100)
-    ap.add_argument("--no-sil", action="store_true", help="skip silhouette")
-    ap.add_argument("--elbow", type=int, help="also sweep WCSS for k = 1..N")
-    ap.add_argument("--base", type=int, choices=[0, 1], default=BASE, help="point numbering start")
+    ap.add_argument("--elbow", type=int, help="kmeans: also sweep WCSS for k = 1..N")
+    ap.add_argument("--eps", type=float, default=1.5, help="dbscan: neighborhood radius")
+    ap.add_argument("--min-pts", type=int, default=3, help="dbscan: minPts")
+    ap.add_argument("--no-self", action="store_true", help="dbscan: point does not count itself")
+    ap.add_argument("--kdist", action="store_true", help="dbscan: k-distance table for choosing eps")
+    ap.add_argument("--sweep", help="dbscan: eps values to compare, e.g. 1,1.5,2")
     a = interactive(ap) if len(sys.argv) == 1 else ap.parse_args()
     BASE = a.base
 
     pts = [list(p) for p in DATA]
-    if not 0 < a.k <= len(pts): sys.exit(f"k must be 1..{len(pts)}")
-    if a.init in ("index", "coords") and not a.spec: a.spec = ",".join(str(pid(i)) for i in range(a.k)) if a.init == "index" else sys.exit("coords init needs --spec")
     hr("STEP 1: data set")
     table(["#"] + FEATURES, [[pid(i)] + list(p) for i, p in enumerate(pts)])
     if a.std:
@@ -208,6 +293,16 @@ def main():
         table(["feature", "mean", "std"], [[f, m, s] for f, m, s in zip(FEATURES, mu, sd)])
         table(["#"] + FEATURES, [[pid(i)] + p for i, p in enumerate(pts)])
 
+    if a.algo == "dbscan":
+        self_counts = 0 if a.no_self else 1
+        if a.eps <= 0 or a.min_pts < 1: sys.exit("eps must be > 0 and minPts >= 1")
+        lab, core, border, noise = dbscan(pts, a.eps, a.min_pts, self_counts)
+        db_report(pts, lab, core, border, noise, not a.no_sil)
+        if a.kdist: kdist(pts, a.min_pts, self_counts)
+        if a.sweep: eps_sweep(pts, parse_csv(a.sweep), a.min_pts, self_counts)
+        return
+    if not 0 < a.k <= len(pts): sys.exit(f"k must be 1..{len(pts)}")
+    if a.init in ("index", "coords") and not a.spec: a.spec = ",".join(str(pid(i)) for i in range(a.k)) if a.init == "index" else sys.exit("coords init needs --spec")
     cents = init_centroids(pts, a.k, a.init, a.spec, a.seed)
     lab, cents, it = kmeans(pts, cents, a.max_iter)
     hr(f"RESULT after {it} iteration(s)")

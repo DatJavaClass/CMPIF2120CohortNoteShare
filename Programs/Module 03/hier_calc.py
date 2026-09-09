@@ -1,11 +1,11 @@
 ## University of Pittsburgh - CMPINF 2120 Applied Predictive Modeling
 ## hierarchical clustering bare metal calculator, stdlib only
-## reuses helpers from kmeans_calc.py (same folder)
+## reuses helpers from kmeans_dbscan_calc.py (same folder)
 ## no flags = prompts, -h = flags
 
 import argparse, sys
-import kmeans_calc as km
-from kmeans_calc import hr, num, table, lst, dist, mean_pt, ask
+import kmeans_dbscan_calc as km
+from kmeans_dbscan_calc import hr, num, table, lst, dist, mean_pt, ask
 
 ## edit the data set here, one row per point
 FEATURES = ["x", "y"]
