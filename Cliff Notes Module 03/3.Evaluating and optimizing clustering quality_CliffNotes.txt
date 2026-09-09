@@ -1,0 +1,339 @@
+1. WHY EVALUATE CLUSTERING QUALITY
+  - There are multiple techniques for evaluating clustering
+    quality. This lesson works with two metrics: the silhouette
+    index and the within cluster sum of squares.
+  - Why a metric is needed at all: k-means returns k clusters
+    for whatever k you hand it, and nothing inside the
+    algorithm reports whether those groups mean anything. A
+    score is what lets you compare runs and choose k. (added
+    explanation)
+  - Running story for the worked examples here: a pizza shop is
+    placing pickup lockers so every delivery address is near
+    one. Each address is a point on the town grid (x = blocks
+    east, y = blocks north), and each cluster gets one locker,
+    sitting at that cluster's centroid. (added)
+  - KEY TERM: centroid: the center of mass of a cluster, the
+    average of its points coordinate by coordinate. See note 1
+    of this module.
+  - KEY TERM: Euclidean distance: straight line distance, the
+    square root of the squared difference in x plus the squared
+    difference in y. Every distance below is this. (added
+    definition)
+
+2. THE SILHOUETTE INDEX
+  - KEY TERM: silhouette index (also called the silhouette
+    coefficient): a widely used metric for evaluating the
+    quality of clustering algorithms.
+  - What it measures: how similar a data point is to its own
+    cluster, which is cluster cohesion, compared to the other
+    clusters, which is cluster separation.
+  - KEY TERM: cohesion: how tightly the members of one cluster
+    sit together. Tight is good. (added definition)
+  - KEY TERM: separation: how far one cluster sits from the
+    others. Far is good. (added definition)
+  - It is computed one point at a time, from two quantities.
+    a(i) is the average distance from point i to all the other
+    points in the same cluster: the intracluster distance. In
+    plain words, how far you are from your own crowd.
+  - b(i) is the minimum average distance from point i to the
+    points in the nearest neighboring cluster: the intercluster
+    distance. Take each other cluster in turn, average the
+    distance from i to every point in it, and keep the smallest
+    of those averages. In plain words, how far you are from the
+    nearest other crowd.
+  - KEY TERM: intracluster distance: measured inside one
+    cluster, from a point to its own cluster mates. (added
+    definition)
+  - KEY TERM: intercluster distance: measured between clusters,
+    from a point to the members of a different cluster. (added
+    definition)
+  - The formula, with s(i) the silhouette score for point i:
+
+      s(i) = (b(i) - a(i)) / max(a(i), b(i))
+
+  - In words: the top is how much further the nearest other
+    cluster is than your own. Positive means your own cluster
+    is the closer of the two, which is what you want. Negative
+    means the neighbors are closer than your own cluster mates.
+    Dividing by the larger of the two distances pins the answer
+    between -1 and 1 whatever the grid units are. (added
+    explanation)
+  - The range runs from -1 to +1:
+      +1 means the point is well clustered, far from the other
+        clusters.
+      0 means the point is on the boundary of two clusters,
+        the case where a(i) = b(i). (added last clause)
+      -1 means the point may be in the wrong cluster.
+  - The overall silhouette score is the average of s(i) across
+    all data points: one number for the clustering, higher
+    better. Being an average, it can hide a few badly placed
+    points, so read the per point scores too. (added note)
+
+3. SILHOUETTE BY HAND: SIX ADDRESSES, TWO CLUSTERS
+  - Six delivery addresses: P1 (1,1), P2 (2,1), P3 (1,2),
+    P4 (7,7), P5 (8,7), P6 (4,4). The clustering under test
+    puts cluster A = P1, P2, P3 and cluster B = P4, P5, P6.
+  - Every distance needed, rounded to three decimals:
+
+          P1     P2     P3     P4     P5     P6
+      P1  0      1      1      8.485  9.220  4.243
+      P2  1      0      1.414  7.810  8.485  3.606
+      P3  1      1.414  0      7.810  8.602  3.606
+      P4  8.485  7.810  7.810  0      1      4.243
+      P5  9.220  8.485  8.602  1      0      5
+      P6  4.243  3.606  3.606  4.243  5      0
+
+  - With two clusters the nearest neighboring cluster is always
+    the other one, so b(i) is the average distance to all three
+    points on the far side.
+  - P1: a = (1 + 1)/2 = 1.000. b = (8.485 + 9.220 + 4.243)/3 =
+    7.316. s = (7.316 - 1.000)/7.316 = 0.863.
+  - P2: a = (1 + 1.414)/2 = 1.207. b = (7.810 + 8.485 +
+    3.606)/3 = 6.634. s = 0.818.
+  - P3: a = 1.207. b = (7.810 + 8.602 + 3.606)/3 = 6.673.
+    s = 0.819.
+  - P4: a = (1 + 4.243)/2 = 2.621. b = (8.485 + 7.810 +
+    7.810)/3 = 8.035. s = 0.674.
+  - P5: a = (1 + 5)/2 = 3.000. b = (9.220 + 8.485 + 8.602)/3 =
+    8.769. s = 0.658.
+  - P6: a = (4.243 + 5)/2 = 4.621. b = (4.243 + 3.606 +
+    3.606)/3 = 3.818. s = (3.818 - 4.621)/4.621 = -0.174.
+  - Overall score = the average of the six = 0.610.
+  - Five points score high: tight with their own cluster mates
+    and far from the other side. P6 at (4,4) is negative, the
+    case the lecture calls a point that may be in the wrong
+    cluster: on average it is closer to cluster A than to its
+    own cluster B.
+  - Move P6 into cluster A and score again: the per point
+    values become 0.765, 0.754, 0.755, 0.859, 0.872, 0.174 and
+    the overall score rises to 0.697. P6 is positive now but
+    still small, because it genuinely sits between the groups.
+    The metric found the better arrangement and also said P6
+    will not be comfortable anywhere.
+  - In Python it is two calls:
+
+      import numpy as np
+      from sklearn.metrics import silhouette_samples
+      from sklearn.metrics import silhouette_score
+      arr_pts = np.array([[1,1],[2,1],[1,2],[7,7],[8,7],[4,4]])
+      arr_lab = np.array([0,0,0,1,1,1]) ## cluster per point
+      print(silhouette_samples(arr_pts, arr_lab).round(3))
+      print(round(silhouette_score(arr_pts, arr_lab), 3)) ## 0.61
+
+4. WITHIN CLUSTER SUM OF SQUARES
+  - KEY TERM: within cluster sum of squares (WCSS): the sum of
+    the squared distances between each point and the centroid
+    of the cluster it belongs to.
+  - The formula is a double sum: one sum over the clusters,
+    one over the points inside each cluster.
+
+      WCSS = sum over clusters, sum over the points in each
+             cluster, of (point minus its centroid) squared
+
+  - In words: for every cluster, and for every point within
+    that cluster, take the difference between the data point
+    and its centroid, square it, and add all of those up into
+    one total. The squaring removes the sign and makes a far
+    point count for much more than a near one. (added last
+    sentence)
+  - The intuition: a lower WCSS means the points are closer to
+    their cluster centroid, so the clusters are more compact.
+    Lower is better.
+  - As the number of clusters increases, WCSS will typically
+    decrease. More lockers means everyone is nearer to a
+    locker, and at k equal to the number of points WCSS
+    reaches exactly zero, since every point is then its own
+    centroid: a perfect score that tells you nothing. (added
+    last sentence)
+  - However, with too many clusters you can have an overfit.
+  - KEY TERM: overfit: a model fitted so closely to the data in
+    front of it that it captures the noise along with the
+    structure and stops describing anything general. Here it is
+    a k so large that the clusters are the individual points
+    back again. (added definition)
+  - So WCSS cannot be minimized on its own to pick k. It has to
+    be read against how fast it is still falling, which is the
+    elbow method. (added explanation)
+  - KEY TERM: inertia: the scikit-learn name for WCSS, exposed
+    on a fitted KMeans object as the attribute inertia_. (added
+    definition)
+
+5. WCSS BY HAND: EIGHT ADDRESSES, TWO LOCKERS
+  - Take the eight address clustering that note 1 of this
+    module carries to convergence: addresses (1,1), (2,1),
+    (1,2), (2,3) around a locker at (1.5, 1.75), and (6,5),
+    (7,5), (6,6), (8,7) around a locker at (6.75, 5.75).
+  - The double sum says do one cluster, then the other, then
+    add the two totals.
+  - Squared distance from each address to (1.5, 1.75):
+      (1,1): 0.25 + 0.5625 = 0.8125
+      (2,1): 0.25 + 0.5625 = 0.8125
+      (1,2): 0.25 + 0.0625 = 0.3125
+      (2,3): 0.25 + 1.5625 = 1.8125
+      Cluster total: 3.75
+  - Squared distance from each address to (6.75, 5.75):
+      (6,5): 0.5625 + 0.5625 = 1.125
+      (7,5): 0.0625 + 0.5625 = 0.625
+      (6,6): 0.5625 + 0.0625 = 0.625
+      (8,7): 1.5625 + 1.5625 = 3.125
+      Cluster total: 5.5
+  - WCSS = 3.75 + 5.5 = 9.25, the number scikit-learn reports
+    as inertia_ for the same fit. No square roots appear: the
+    metric stays in squared distance, so only the comparison
+    between totals carries meaning. (added note)
+
+6. THE ELBOW METHOD
+  - The problem it solves: determining the best k for k-means.
+  - The procedure:
+      Identify a quality metric. Here it is the within cluster
+        sum of squares.
+      Perform the clustering for different values of k, that
+        is, repeat k-means for many k values.
+      Plot the quality metric on the y axis and the k value on
+        the x axis.
+      Visually identify the point of diminishing returns for
+        increasing k. After some point, k can be increased
+        without adding much to the quality.
+  - KEY TERM: point of diminishing returns: the k past which
+    each additional cluster buys a much smaller improvement
+    than the clusters before it did. (added definition)
+  - The name: the curve drops steeply, then flattens, and the
+    corner between the two looks like the elbow of an arm being
+    extended a little. That bend is the k you pick.
+
+7. THE LECTURE'S TEN POINT WALK
+  - The lecture runs a small dataset of 10 data points through
+    k-means for every k from 1 to 10.
+  - k = 1 is trivial: everything is a single cluster. k = 2
+    gives two clusters, one holding all the top left points and
+    one holding all the bottom right points.
+  - k = 3 splits the points into three clusters, and visual
+    inspection says that is reasonable. k = 4, k = 5, and k = 6
+    split things a little further each time and still seem
+    reasonable.
+  - Past 7 you can tell that points which were close to each
+    other are being split apart, and the same holds at 8 and 9.
+    At k = 10 every point is its own cluster.
+  - The plot puts WCSS on the y axis, where lower is better,
+    and the number of clusters on the x axis, from 1 to 10. It
+    shows one big drop and after that things are negligibly
+    better. From 1 to 2 the drop is really big, and from there
+    it slows.
+  - The lecture reads the elbow at k = 2. Beyond it you get
+    some improvement, but you are effectively at the point of
+    diminishing returns, so it is not really worth it. k = 2 is
+    the best choice for that data.
+
+8. AN ELBOW FROM END TO END
+  - Ten delivery addresses: (1,1), (2,2), (1,3), (8,1), (9,2),
+    (8,3), (4,8), (5,9), (6,8), (5,5). By eye there is a
+    southwest group, a southeast group, a north group, and one
+    address at (5,5) sitting in the middle of town. These ten
+    addresses are the notes' own, not the lecture's ten points,
+    so the elbow lands somewhere else.
+  - Run k-means for k = 1 to 10 and record the WCSS:
+      k = 1    162.500
+      k = 2     87.238
+      k = 3     16.333
+      k = 4      8.000
+      k = 5      6.333
+      k = 6      4.667
+      k = 7      3.000
+      k = 8      2.000
+      k = 9      1.000
+      k = 10     0.000
+  - k = 1 checks by hand: one locker at the grand mean of all
+    ten addresses, (4.9, 4.2), with every address measured to
+    it. Those squared distances add to 162.5. At k = 10 every
+    address is its own locker and every distance is zero.
+  - Now read the drops. From 1 to 2 removes 75.262. From 2 to 3
+    removes another 70.905. From 3 to 4 removes only 8.333, and
+    every step after that buys a few units at most.
+  - The elbow is at k = 3. The second and third lockers pay for
+    themselves; the fourth does not. All the fourth does is
+    make the address at (5,5) a cluster of one, the overfit
+    from section 4 arriving on schedule.
+  - The silhouette index agrees, which is the check worth
+    running. On the same runs: k = 2 gives 0.446, k = 3 gives
+    0.678, k = 4 gives 0.545, k = 5 gives 0.376, k = 6 gives
+    0.249, k = 7 gives 0.088, k = 8 gives 0.059, k = 9 gives
+    0.029. It peaks at k = 3, the answer the elbow gave.
+  - The silhouette is undefined at k = 1 (no other cluster, so
+    no b) and at k equal to the number of points (nobody else
+    in your cluster, so no a), so it is computed only for k
+    from 2 up to n minus 1. (added explanation)
+  - The code, and note that a fitted KMeans hands back the WCSS
+    directly:
+
+      import numpy as np
+      from sklearn.cluster import KMeans
+      from sklearn.metrics import silhouette_score
+      arr_pts = np.array([[1,1],[2,2],[1,3],[8,1],[9,2],
+                          [8,3],[4,8],[5,9],[6,8],[5,5]])
+      for k in range(1, 11):
+          km = KMeans(n_clusters=k, n_init=10,
+                      random_state=0).fit(arr_pts)
+          s = float("nan") ## undefined at both ends
+          if 1 < k < 10:
+              s = silhouette_score(arr_pts, km.labels_)
+          print(k, round(km.inertia_, 3), round(s, 3))
+
+9. KEY TAKEAWAYS
+  - Silhouette weighs cohesion against separation one point at
+    a time: a(i) measures you against your own cluster mates,
+    b(i) against the nearest other cluster, and the clustering
+    gets the mean of the per point scores.
+  - A negative per point silhouette is actionable: it names the
+    point to move, and moving it raised the overall score from
+    0.610 to 0.697 in the six address example.
+  - WCSS typically falls as k rises and reaches zero when
+    every point is its own cluster, so its minimum is
+    worthless as a target. What you read is the rate of the
+    fall.
+  - The elbow method finds that rate change on a plot: the bend
+    where extra clusters stop paying for themselves.
+  - In scikit-learn: km.inertia_ is WCSS, silhouette_score is
+    the overall silhouette, silhouette_samples the per point
+    silhouette.
+
+10. QUIZ-SAFE FACTS
+  - Multiple techniques exist for evaluating clustering
+    quality; this lesson covers two, the silhouette index and
+    the within cluster sum of squares.
+  - The silhouette index is also called the silhouette
+    coefficient and is widely used.
+  - It measures how similar a data point is to its own cluster,
+    that is cluster cohesion, compared to other clusters, which
+    implies cluster separation.
+  - a(i) is the average distance to all other points in the
+    same cluster, the intracluster distance. b(i) is the
+    minimum average distance to points in the nearest
+    neighboring clusters, the intercluster distance.
+  - s(i) = (b(i) - a(i)) / max(a(i), b(i)), and the overall
+    silhouette score is the average of s(i) across all points.
+  - Silhouette values range from -1 to +1: +1 means the point
+    is well clustered and far from other clusters, 0 means it
+    is on the boundary of two clusters, -1 means it may be in
+    the wrong cluster.
+  - WCSS is the sum of squared distances between each point and
+    the centroid of the cluster it belongs to, written as a
+    double sum over the clusters and over the points in each.
+  - Lower WCSS means points are closer to their cluster
+    centroid, so the clusters are more compact.
+  - As the number of clusters increases, WCSS will typically
+    decrease, and too many clusters can produce an overfit.
+  - Elbow method steps for k-means: identify a quality metric
+    (the lecture uses WCSS), perform clustering for different
+    values of k, plot the metric on the y axis against k on the
+    x axis, and visually identify the point of diminishing
+    returns.
+  - The lecture's example has 10 data points run for k = 1
+    through k = 10; k = 1 is a single cluster, k = 2 gives a
+    top left cluster and a bottom right cluster, and at k = 10
+    every point is its own cluster.
+  - On that plot the drop from 1 to 2 is really big and after
+    that the improvement is negligible.
+  - The elbow gets its name from the bend resembling the elbow
+    of a partly extended arm.
+  - The lecture concludes that k = 2 is the best choice for
+    that dataset.

@@ -1,0 +1,283 @@
+1. WHERE THIS LESSON PICKS UP
+  - This lesson is all examples, harder than the first lesson's.
+    The professor takes one set of 10 points and runs k-means
+    three times: k = 3 from one set of starting centroids, k = 3
+    again from another, then k = 2. See note 1 of this module
+    for the algorithm and for hierarchical clustering.
+  - The algorithm in four lines (recap): pick k starting
+    centroids, assign every point to the centroid nearest it,
+    recompute each centroid as the average of the points now
+    assigned to it, repeat that pair until nothing moves.
+  - KEY TERM: cluster: a group of points the algorithm has
+    decided belong together. The lecture gives each one a color.
+    (added definition)
+  - KEY TERM: centroid: the center of a cluster, the average of
+    the coordinates of its points. It is a location, usually not
+    one of the data points after the first update. (added
+    definition)
+  - KEY TERM: k: the number of clusters, chosen before the run.
+    (added definition)
+  - Where the first centroids come from: typically, when we
+    implement k-means, we pick them out of the existing points.
+    Good centroids are very difficult to pick with no idea where
+    the data are, and picking from the points you have
+    guarantees they land inside the space the points occupy.
+    Every example here uses that technique.
+  - KEY TERM: seed: the set of starting centroids a run begins
+    from. (added definition)
+  - KEY TERM: Euclidean distance: straight line distance,
+    sqrt((x1 - x2)^2 + (y1 - y2)^2) in 2-D. This is what
+    "closest" means throughout. (added definition)
+
+2. THE LECTURE'S THREE RUNS ON TEN POINTS
+  - The data: 10 points generated from a script. All three runs
+    draw their initial centroids from those points, and section
+    9 lists the assignments each run made.
+  - Run 1, k = 3 seeded at points 2, 4 and 9. Every other point
+    joins the nearest of the three, the three clusters are
+    labelled red, green and purple, then each centroid moves to
+    its cluster's average. The second pass changes no
+    assignment, so the new centroids match the old: convergence,
+    and that is where we stop.
+  - KEY TERM: convergence: another pass changes neither the
+    assignments nor the centroids, so the algorithm stops.
+  - KEY TERM: iteration: one full pass, assign then recompute.
+    (added definition)
+  - Run 2, k = 3 seeded at points 1, 6 and 8, chosen to produce
+    a little movement between clusters. Point 10 starts purple
+    and changes affiliation to green on the second assignment,
+    the two centroids having shifted under it. One more pass
+    changes nothing: convergence, on pretty much the same
+    groups.
+  - The center of gravity picture: think of the points as balls
+    on a tray. The centroid is the exact spot where you could
+    hold the tray and it would not topple over. In run 3 the
+    professor makes them beers on a tray you have to balance.
+  - KEY TERM: center of mass (center of gravity): the balance
+    point of a set of objects. For equal weights it is the plain
+    average of their coordinates, which is what the centroid
+    update computes. (added definition)
+  - Run 3, k = 2 seeded at points 2 and 9: three groups the
+    naked eye can see, squeezed into two clusters. The green
+    center moves up significantly to average the points it now
+    holds, and the red center moves up and to the right to
+    counterbalance 1, 2 and 5 on one side against 10 on the
+    other. Point 10 then changes teams from red to green, the
+    red centroid moves inside the triangle formed by points 1, 2
+    and 5, the green centroid moves left, and the pass after
+    that brings no changes: convergence.
+
+3. WORKED EXAMPLE: TEN ADDRESSES, THREE LOCKERS
+  - The running example for this module: a pizza shop wants k
+    pickup lockers placed so every delivery address is close to
+    one. An address is a point on the town grid, x blocks east
+    and y blocks north, and each locker goes at the centroid of
+    the addresses it serves.
+  - The ten addresses:
+      1 (1,1)   2 (2,2)   3 (1,3)
+      4 (8,1)   5 (9,2)   6 (8,3)
+      7 (4,8)   8 (5,9)   9 (6,8)
+      10 (5,5)
+  - By eye: a southwest group (1, 2, 3), a southeast group
+    (4, 5, 6), a north group (7, 8, 9), and address 10 alone in
+    the middle of the map.
+  - The seed: k = 3, centroids taken from the addresses as the
+    lecture prescribes, addresses 1, 4 and 7 becoming red, green
+    and purple.
+  - Iteration 1, assignment. Each address goes to the nearest of
+    (1,1), (8,1) and (4,8). Red takes 1, 2, 3. Green takes 4, 5,
+    6. Purple takes 7, 8, 9 and 10.
+      Address 10 at (5,5) is the one worth checking. To (1,1):
+      sqrt(16 + 16) = 5.657. To (8,1): sqrt(9 + 16) = 5.0. To
+      (4,8): sqrt(1 + 9) = 3.162. Purple, so the lonely middle
+      address is served by the north locker.
+  - Iteration 1, recompute. Average the x values and the y
+    values in each cluster:
+      Red: ((1 + 2 + 1)/3, (1 + 2 + 3)/3) = (1.333, 2.0).
+      Green: ((8 + 9 + 8)/3, (1 + 2 + 3)/3) = (8.333, 2.0).
+      Purple: ((4 + 5 + 6 + 5)/4, (8 + 9 + 8 + 5)/4)
+        = (5.0, 7.5).
+  - Iteration 2: assign again against those centroids. Every
+    address keeps its cluster, so the recomputed centroids are
+    identical. Converged on the second pass. Lockers at (1.333,
+    2.0), (8.333, 2.0) and (5.0, 7.5). Address 10 has pulled the
+    purple locker south of the north group, since nothing in
+    k-means lets a point opt out. (added note)
+
+4. THE SAME ADDRESSES FROM A WORSE SEED
+  - Same addresses, same k = 3, centroids at addresses 10, 4 and
+    8. The awkward case: the lonely middle address is a seed.
+  - Iteration 1, assignment. Red (from address 10 at (5,5))
+    takes 1, 2, 3 and itself. Green (from address 4) takes 4, 5,
+    6. Purple (from address 8) takes 7, 8, 9.
+      Check address 2 at (2,2). To (5,5): sqrt(9 + 9) = 4.243.
+      To (8,1): sqrt(36 + 1) = 6.083. To (5,9): sqrt(9 + 49) =
+      7.616. Red, so the southwest group hangs off the middle
+      address.
+  - Iteration 1, recompute:
+      Red: ((1 + 2 + 1 + 5)/4, (1 + 2 + 3 + 5)/4)
+        = (2.25, 2.75).
+      Green: (8.333, 2.0).
+      Purple: ((4 + 5 + 6)/3, (8 + 9 + 8)/3) = (5.0, 8.333).
+  - Iteration 2, assignment: address 10 changes teams. To the
+    red centroid (2.25, 2.75) it is sqrt(7.5625 + 5.0625) =
+    3.553, to the purple centroid (5.0, 8.333) it is 3.333.
+    Purple wins by about two tenths of a block. Red keeps 1, 2,
+    3, purple holds 7, 8, 9, 10. The point did not move, the
+    centroid chasing it did.
+  - Iteration 2, recompute: red back to (1.333, 2.0), green
+    still (8.333, 2.0), purple (5.0, 7.5). Iteration 3: nothing
+    changes, converged. Identical lockers to section 3, one
+    extra iteration to reach them. A worse seed does not always
+    end this politely, which is why section 7's choices matter.
+    (added note)
+
+5. TWO LOCKERS FOR THREE NEIGHBORHOODS
+  - Same addresses, k = 2, centroids at addresses 1 and 4.
+    Three visible groups plus a straggler, two lockers.
+  - Iteration 1, assignment. Red (from (1,1)) takes 1, 2, 3 and
+    7. Green (from (8,1)) takes 4, 5, 6, 8, 9 and 10.
+      The north group gets split. Address 7 (4,8) is 7.616
+      from (1,1) and 8.062 from (8,1), so red. Address 8 (5,9)
+      is 8.944 from (1,1) and 8.544 from (8,1), so green. Two
+      addresses one block apart on each axis land on opposite
+      teams, the only comparison being distance to the two
+      seeds.
+  - Iteration 1, recompute:
+      Red: ((1 + 2 + 1 + 4)/4, (1 + 2 + 3 + 8)/4) = (2.0, 3.5).
+      Green: ((8 + 9 + 8 + 5 + 6 + 5)/6,
+        (1 + 2 + 3 + 9 + 8 + 5)/6) = (6.833, 4.667).
+  - Iteration 2, assignment: address 7 changes teams to green,
+    4.924 to the red centroid against 4.374 to the green one.
+    Red keeps 1, 2, 3, green holds the rest.
+  - Iteration 2, recompute: red (1.333, 2.0), green (45/7, 36/7)
+    = (6.429, 5.143). Iteration 3: no changes, converged.
+  - What k = 2 did to the map: the north group and the southeast
+    group were welded into one cluster whose locker at (6.429,
+    5.143) sits in empty space between them. Forcing three
+    natural groups into two does not split the difference, it
+    parks a center where nobody lives. The spread of the
+    addresses around their lockers rises from 16.333 with three
+    lockers to 87.238 with two, and note 3 of this module
+    defines that number and uses it to pick k. (added note)
+
+6. THE WORKED EXAMPLE IN PYTHON
+  - scikit-learn does the whole loop in one call:
+
+      import numpy as np
+      from sklearn.cluster import KMeans
+      arr_pts = np.array([[1,1],[2,2],[1,3],[8,1],[9,2],[8,3],
+                          [4,8],[5,9],[6,8],[5,5]])
+      km = KMeans(n_clusters=3, n_init=10,
+                  random_state=0).fit(arr_pts) ## three lockers
+      print(km.labels_) ## cluster id per address
+      print(km.cluster_centers_.round(3)) ## locker sites
+
+  - It prints labels [2 2 2 0 0 0 1 1 1 1] and centers (8.333,
+    2.0), (5.0, 7.5), (1.333, 2.0): the three lockers of section
+    3, in label order. The ids are only names, so which group is
+    0 carries no meaning. Read the labels as who shares a
+    locker: 1, 2, 3, then 4, 5, 6, then 7, 8, 9 and 10.
+  - n_init=10 runs the algorithm ten times from ten different
+    seeds and keeps the best result, which is how the library
+    defends against the seed of section 4. random_state=0 fixes
+    those seeds so the call always prints the same thing. (added
+    explanation)
+  - Set n_clusters=2 for section 5 and the centers come back as
+    (6.429, 5.143) and (1.333, 2.0). (added note)
+
+7. PICKING THE INITIAL CENTROIDS
+  - The one thing obvious in all of these examples is that the
+    assignment of the initial centroids is very crucial. Three
+    approaches, in the professor's labels:
+      Expired: pick completely random points. Not used anymore.
+        The chances of a good initial assignment are slim, and
+        it requires knowing a lot about the domain and the point
+        space.
+      Wired: pick k random points out of the existing set of
+        points. The current standard approach for k-means. It
+        guarantees you do not pick points nowhere near any
+        existing points, but it is still sensitive to which
+        points get chosen.
+      Upgraded: k-means++. Pick the first point completely at
+        random from the set of points. Centroids 2, 3, up to k
+        come from a probability distribution favoring points
+        farther away from those already picked: after the random
+        first, the second is effectively the remaining point
+        farthest from it, and three and four go the same way.
+        From there it gets a little more mathy.
+  - KEY TERM: k-means++: that scheme, random first pick then
+    distance weighted picks. It is scikit-learn's default for
+    init, which is why the code above did not ask for it. (added
+    note)
+  - The closing summary: k-means is simple, very understandable,
+    and assigns items to clusters automatically. Its
+    disadvantages: the number of clusters must be picked
+    beforehand, and all items are forced into clusters, which
+    can make it too sensitive to outliers.
+  - KEY TERM: outlier: a point far from every group, like
+    address 10 in the worked example. k-means has no "none of
+    the above" option, so an outlier joins some cluster and
+    pulls its centroid toward itself. (added definition)
+
+8. KEY TAKEAWAYS
+  - Initial centroids are normally chosen from the existing data
+    points, which keeps them inside the space the data occupies.
+  - Convergence is the stopping rule: a pass that changes
+    neither the assignments nor the centroids ends the run.
+  - A point changes teams because the centroids moved under it,
+    not because the point moved. Two of the lecture's runs and
+    sections 4 and 5 turn on that.
+  - A different seed can change the number of iterations without
+    changing the final clusters (sections 3 and 4), and it can
+    change the result too, which is why k-means++ exists.
+  - Choosing k too small merges natural groups and parks a
+    centroid where no points are.
+
+9. QUIZ-SAFE FACTS
+  - Typically, when implementing k-means, centroids are picked
+    out of the existing points, because good centroids are hard
+    to pick without knowing where the data are and this
+    guarantees they are within the space of the points.
+  - The examples use 10 points from a script, run with two
+    different seeds for the initial centroids and then with a
+    changed value of k.
+  - First run: k = 3 with centroids at points 2, 4 and 9. Point
+    2 got 1 and 5, point 9 got 8 and 7, point 4 got 3, 6 and 10.
+    The purple cluster started as points 8, 7 and 9, and its
+    centroid moved off point 9 to their average.
+  - The first run converged on the second pass: assignments
+    unchanged and new centroids identical to the old.
+    Convergence means the centroids and the assignments do not
+    change, and that is where the algorithm stops.
+  - Second run: same points, centroids at 1, 6 and 8. Point 1
+    was closest to 2 and 5, point 8 to 7 and 9, point 6 to 3 and
+    4, and point 10 came out closer to 8 than to 6. Point 10
+    then changed affiliation from purple to green, because the
+    green centroid moved down a little and the purple centroid
+    moved up only slightly.
+  - The centroid is the center of gravity: if the points were
+    balls on a tray, it is the spot to hold the tray so it does
+    not topple over.
+  - Third run: k = 2 with centroids at points 2 and 9, forcing
+    data that looks like three clusters to the naked eye into
+    two. Point 2 initially took 1, 5 and 10, point 9 took 8, 7,
+    3, 4 and 6 but not 10, and point 10 then changed teams from
+    red to green.
+  - In the third run the green center moved up significantly and
+    the red center moved up and to the right, each balancing the
+    points it had to average.
+  - The assignment of initial centroids is very crucial.
+    Expired approach: completely random points, not used, the
+    chance of a good initial assignment is slim. Wired approach:
+    k random points out of the existing set, the current
+    standard, still sensitive to which points are chosen.
+    Upgraded approach: k-means++, first centroid random and the
+    rest from a probability distribution favoring points farther
+    from those already picked.
+  - k-means advantages: simple, very understandable, assigns
+    items to clusters automatically. Disadvantages: the number
+    of clusters must be picked beforehand, all items are forced
+    into clusters, and it can be too sensitive to outliers.
+  - The professor's wrap up: k-means was shown with one very
+    simple example and three slightly more sophisticated ones.

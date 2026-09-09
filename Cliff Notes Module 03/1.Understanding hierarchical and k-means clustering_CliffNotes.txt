@@ -1,0 +1,278 @@
+1. WHAT CLUSTERING IS
+  - Clustering is the task of discovering groups and
+    structures in the data that are in some way similar to
+    each other. Members of a cluster should be more alike
+    among each other than they are to members of other
+    clusters.
+  - KEY TERM: cluster: a group of data points held together
+    because they resemble each other more than anything
+    outside the group.
+  - Given a scatter of points, the lecture slide shows the eye
+    picking out three groups with nothing to go on but the
+    layout. That is the intuition a clustering algorithm
+    automates. (last sentence added)
+  - Clustering is one type of unsupervised learning.
+  - KEY TERM: unsupervised learning: modeling on data with no
+    labels and no known answer to score against. Nobody tells
+    the algorithm what the right groups are, so it finds
+    structure on its own. (added definition)
+
+2. TYPES OF CLUSTERING ALGORITHMS
+  - Two families: hierarchical and point assignment.
+  - KEY TERM: hierarchical clustering: algorithms that build
+    clusters by repeatedly merging or splitting them, in two
+    subcategories.
+  - KEY TERM: agglomerative: the bottom up one. Initially
+    each point is a cluster by itself, and the two nearest
+    clusters are repeatedly combined into one.
+  - KEY TERM: divisive: the top down one. Start with
+    everything in one cluster and recursively split it.
+  - KEY TERM: point assignment: the algorithm maintains a set
+    of clusters at any given time, and each point belongs to
+    the cluster nearest to it. That membership can change
+    over time until convergence.
+  - Point assignment algorithms are the more popular type.
+    k-means is the one this module works with. The
+    difference: hierarchical algorithms never take a merge
+    back, while point assignment keeps a working answer and
+    lets points change hands. (last sentence added)
+
+3. THE THREE QUESTIONS OF HIERARCHICAL CLUSTERING
+  - The key operation, in the agglomerative case at least, is
+    to repeatedly combine the two nearest clusters. Three
+    questions have to be answered first: how do you represent
+    a cluster of more than one point, how do you determine
+    the nearness of clusters, and when do you stop combining
+    clusters?
+  - Answer 1: comparing clusters efficiently needs one
+    representative per cluster, and in the simpler case, using
+    Euclidean distance, that representative is the centroid.
+  - KEY TERM: point, on a 2-D plane: one data record drawn as
+    a dot at its two feature values, x across and y up. Every
+    example in this module lives on such a plane. (added
+    definition)
+  - KEY TERM: centroid: the average of all the data points in
+    a cluster. Average the x values, average the y values,
+    and that pair is the centroid. The professor's second way
+    to think about it: the centroid is the center of mass, as
+    if the points were objects laid out on a plane.
+  - KEY TERM: Euclidean distance: ordinary straight line
+    distance. Subtract the x values, subtract the y values,
+    square both differences, add, take the square root:
+    sqrt((x1 - x2)^2 + (y1 - y2)^2). (added definition)
+  - Answer 2: nearness between clusters is the distance
+    between their centroids. One number per pair, however many
+    points each cluster holds. (second sentence added
+    restatement)
+  - Answer 3: bottom up stops when all points have been
+    combined into one cluster. Top down stops when all
+    clusters have been split into single points. Both run to
+    the extreme, so what you keep is the sequence of merges,
+    cut where the number of clusters suits you. (last
+    sentence added)
+
+4. THE K-MEANS ALGORITHM
+  - k-means is the most popular clustering algorithm, popular
+    because it is very simple. It works with numerical data
+    only.
+  - KEY TERM: k: the number of clusters to generate. You
+    specify it before the algorithm runs.
+  - The steps as the lecture gives them:
+      Step 1. Pick k cluster centers at random. These are the
+        initial cluster centers.
+      Step 2. Assign every item, every point, to its nearest
+        cluster center, for example using Euclidean distance.
+      Step 3. Move each cluster center to the new mean of its
+        assigned items.
+      Step 4. Repeat the assignment and the recomputation
+        until convergence.
+  - KEY TERM: initial centroids, also called the seed: the
+    starting positions of the k centers. (added definition)
+  - KEY TERM: iteration: one full pass of assign then
+    recompute. (added definition)
+  - KEY TERM: convergence: the point where the change in
+    cluster assignment is less than a threshold, ideally
+    zero. Nothing moves and nothing changes hands, so another
+    pass produces the same picture.
+  - You may also want a timeout parameter: after a set number
+    of iterations you stop, expecting little improvement
+    beyond that point.
+
+5. THE LECTURE'S EIGHT POINT WALK
+  - Setup: a 2-D plane with eight orange points and two
+    random initial centroids, green and blue.
+  - The shortcut for the assignment step: draw the line
+    connecting the two centroids and a dashed line through
+    its exact middle, perpendicular to it. Everything on the
+    green side is closer to the green centroid, everything on
+    the other side to the blue one, so no distances are
+    computed one at a time.
+  - KEY TERM: perpendicular bisector: that dashed line, every
+    position on it the same distance from both centroids.
+    (added definition)
+  - First assignment: three points green, five blue. Each
+    centroid then becomes the average of the points carrying
+    its color, moving off its random spot.
+  - Reassign: the bottom green point used to be blue, but the
+    green center is now much closer, so it changes. The
+    professor calls this a team reassignment. The recomputed
+    centroids fall squarely in the middle of the four green
+    points and the four blue points.
+  - Repeat once more: no point changes color. No changes
+    means convergence, and the algorithm terminates.
+
+6. WORKED EXAMPLE: WHERE TO PUT TWO PIZZA LOCKERS
+  - The story for the worked examples in this module: a pizza
+    shop wants to place k pickup lockers so every delivery
+    address is close to one. An address is a point on the
+    town grid, x blocks east and y blocks north, a locker
+    goes at the centroid of its cluster, distances Euclidean.
+  - Eight addresses, numbered 1 to 8:
+    (1,1) (2,1) (1,2) (2,3) (6,5) (7,5) (6,6) (8,7).
+    Two lockers, so k = 2.
+  - Initial centroids, picked from the addresses themselves:
+    L1 = address 1 at (1,1), L2 = address 4 at (2,3).
+  - Iteration 1, assignment. Address 4 is L2, so its distance
+    is 0 and it goes to L2. Address 5 at (6,5): to L1 the
+    gaps are 5 east and 4 north, so sqrt(25 + 16) = 6.403;
+    to L2 the gaps are 4 and 2, so sqrt(16 + 4) = 4.472. L2
+    is closer. Working through the rest the same way, L1 gets
+    addresses 1, 2 and 3, and L2 gets 4, 5, 6, 7 and 8.
+  - Iteration 1, new centroids. L1 is the average of (1,1),
+    (2,1) and (1,2): x is (1 + 2 + 1) / 3 and y is
+    (1 + 1 + 2) / 3, so L1 = (1.333, 1.333). L2 is the
+    average of (2,3), (6,5), (7,5), (6,6) and (8,7): x is
+    29 / 5 and y is 26 / 5, so L2 = (5.8, 5.2).
+  - Iteration 2, assignment. Address 4 at (2,3) changes
+    teams. Its distance to the new L1 is sqrt(0.444 + 2.778)
+    = 1.795, and to the new L2 it is sqrt(14.44 + 4.84) =
+    4.391. L1 now has 1, 2, 3 and 4, and L2 has 5, 6, 7 and
+    8. Address 4 was a centroid a moment ago and now belongs
+    to the other cluster, because L2 was dragged northeast by
+    the five points around it. (last sentence added
+    explanation)
+  - Iteration 2, new centroids. L1 = (6 / 4, 7 / 4) =
+    (1.5, 1.75). L2 = (27 / 4, 23 / 4) = (6.75, 5.75).
+  - Iteration 3. Every address is still nearest the same
+    locker and neither centroid moves. That is convergence
+    and the run stops. The lockers go at (1.5, 1.75) and
+    (6.75, 5.75).
+  - Address 4 switching sides on the second pass is the whole
+    mechanism in miniature: a point between two groups follows
+    whichever center ends up nearer once the centers move to
+    where the mass is. (added explanation)
+  - Adding up how far each address sits from its locker, in
+    squared distance, gives 9.25 at convergence: 3.75 for the
+    west locker's four addresses and 5.5 for the east one's.
+    That total is the within cluster sum of squares, and note
+    3 of this module defines it and uses it to pick k. (added
+    note)
+
+7. PICKING THE INITIAL CENTROIDS
+  - The professor's first summary point: the assignment of
+    the initial centroids is very crucial. Had the initial
+    points been picked elsewhere, the run would have had a
+    different outcome, or at least different steps to the
+    same outcome.
+  - Approach 1, labeled expired: pick completely random
+    points anywhere in the point space, as the eight point
+    walk did purely as illustration. Not really used.
+  - Approach 2, labeled wired: pick k random points from the
+    existing set of points. Out of ten points, if k is two,
+    you pick two of those ten. This is what is typically used
+    and is the standard k-means approach. Starting from points
+    that exist leaves no centroid stranded in an empty region
+    of the space. (last sentence added)
+  - Approach 3, labeled upgraded, is k-means++. Pick one
+    random point from the set, then choose the remaining
+    centroids from a probability distribution that favors
+    points farther away from those already picked. For k = 2
+    the second is essentially the point at the highest
+    distance from the first. This explores the space more and
+    is shown to be a little bit better.
+  - KEY TERM: k-means++: the name of that scheme. The loop
+    after it is ordinary k-means, only the choice of starting
+    centers changes. (added definition)
+
+8. ADVANTAGES AND DISADVANTAGES OF K-MEANS
+  - Advantages: it is simple, it is very easy to understand,
+    and it assigns items to clusters automatically.
+  - Disadvantage: you have to pick the number of clusters
+    beforehand. The k value is crucial and you must have it
+    before you cluster.
+  - Disadvantage: all items are forced into clusters, whether
+    they would like that or not. As a result k-means is too
+    sensitive to outliers: an obvious outlier still ends up
+    in some cluster, and that may skew your results.
+  - KEY TERM: outlier: a point sitting far from the rest of
+    the data. Since a centroid is an average, one far point
+    pulls its centroid away from the group it represents.
+    (added definition)
+
+9. KEY TAKEAWAYS
+  - Clustering finds groups of similar points with no labels
+    to learn from. It is unsupervised learning.
+  - Hierarchical: agglomerative merges the two nearest
+    clusters bottom up, divisive splits top down. Point
+    assignment keeps a live set of clusters and lets points
+    move between them.
+  - k-means: choose k, place k centers, assign each point to
+    its nearest center, move each center to the mean of its
+    points (the centroid, the center of mass), repeat until
+    assignments stop changing.
+  - Initialization matters: random points in space (expired),
+    random points from the data (wired, the standard), or
+    k-means++ (upgraded), which spreads the centers apart.
+  - Simple and automatic, but you supply k and every point is
+    forced into a cluster, which makes it too sensitive to
+    outliers.
+
+10. QUIZ-SAFE FACTS
+  - Clustering discovers groups and structures in the data
+    that are similar to each other; members of a cluster
+    should be more alike among each other than to members of
+    other clusters. It is unsupervised learning.
+  - Hierarchical clustering has two subcategories:
+    agglomerative (bottom up, each point starts as its own
+    cluster, the two nearest are repeatedly combined) and
+    divisive (top down, one cluster recursively split).
+  - Point assignment algorithms are the more popular type:
+    they maintain a set of clusters, points belong to the
+    nearest one, and that can change until convergence.
+  - The three questions of hierarchical clustering: how to
+    represent a cluster of more than one point, how to
+    determine nearness, when to stop combining clusters. The
+    answers: the centroid, the average of all its data points
+    and the center of mass; the distance between centroids;
+    and one cluster for agglomerative, all single points for
+    divisive.
+  - k-means is the most popular clustering algorithm, is
+    popular because it is very simple, and works with
+    numerical data only. k must be specified before running.
+  - The k-means steps: pick k cluster centers at random,
+    assign every point to its nearest center (for example by
+    Euclidean distance), move each center to the new mean of
+    its assigned items, repeat until convergence, which is
+    when the change in cluster assignment is less than a
+    threshold, ideally zero. A timeout parameter may stop the
+    run after a number of iterations.
+  - In the lecture's eight point example, two random
+    centroids split the points three green and five blue on
+    the first pass, one green point that had been blue was
+    reassigned after the centroids moved, and the run
+    converged with four green and four blue.
+  - The assignment shortcut: a dashed line perpendicular to
+    the line connecting two centroids, through its middle,
+    separates the points closer to one from the rest.
+  - The assignment of the initial centroids is very crucial.
+    The professor's three labels: expired (completely random
+    points in the point space, not really used), wired (k
+    random points from the existing set of points, the
+    standard k-means approach), upgraded (k-means++, which
+    picks one random point then chooses the rest from a
+    distribution favoring points farther from those already
+    picked, and is shown to be a little better).
+  - Advantages of k-means: simple, very easy to understand,
+    automatically assigns items to clusters. Disadvantages:
+    you must pick k beforehand, all items are forced into
+    clusters, and it is too sensitive to outliers.
