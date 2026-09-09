@@ -13,6 +13,18 @@ The notes are organized by module:
 - `Cliff Notes Module 01/` (the applied predictive modeling roadmap: supervised vs unsupervised learning, classification vs regression, the kNN method for classification and for regression, train/test splits and MAE/RMSE, plus the Chapter 2 reading in three parts: data mining tasks, the CRISP-DM process, and the neighboring analytics techniques)
 - `Cliff Notes Module 02/` (data preprocessing and what it fixes: the Pitt Smart Living bus data, attribute and data set types, the text pipeline, missing data and outliers. Summary statistics and histograms: mean, median, mode, quartiles, variance, equal-width and equal-height buckets. Numerical transforms: standardization, min-max, and robust scaling. Categorical encoding: label, ordinal, and one-hot, with the Titanic notebooks. Then the five-video PCA arc: the linear algebra primer, vectors, dot products, and projection. Covariance matrices, the data ellipse, and eigenvectors. What PCA is and why it pays. The three-step recipe in scikit-learn. Choosing components with the scree plot, reading loadings, and Simpson's paradox)
 
+## Programs
+
+
+
+Bare metal calculators, one per method, that run in a terminal and print every step of the math. No packages, just Python. Run one with no flags and it prompts for the inputs, or pass flags, or edit the data list at the top of the file. They are for checking homework math one step at a time, not for real data. (For real data there is scikit-learn, and it does not show its work.)
+
+- `Programs/Module 01/` (kNN for regression and kNN for classification: distances, the k nearest, the average or the vote, then MAE and RMSE, or accuracy and a confusion matrix, on masked rows)
+- `Programs/Module 02/` (PCA from a data set or straight from a covariance matrix: scaling, the covariance matrix, eigenvectors and eigenvalues, the scree table with the elbow and a variance target, loadings, and the projection. Plus the vector helpers from the linear algebra primer)
+- `Programs/Module 03/` (k-means with every initial centroid rule the lecture named, WCSS, silhouette, and the elbow sweep. Hierarchical clustering bottom up with a dendrogram and top down by splitting the widest cluster)
+
+The Module 01 and Module 03 files share helpers with their folder mates, so keep each folder together.
+
 ## Contributors
 
 - **DatJavaClass (Victor S)**, author and director. Conceived these notes, established their format and structure, directed their creation, and fact-checked, edited, and quality-controlled every one, with assistance by Claude. Some material may have been derived from assigned material, but has not been copied verbatim. For source materials please contact CMPINF-2120 Faculty and Assistants.
