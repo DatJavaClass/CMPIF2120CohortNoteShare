@@ -1,0 +1,425 @@
+1. WHAT AN ASSOCIATION RULE IS
+  - Association rules describe the patterns found in the data,
+    an intuitive way to let decision makers make sense of what
+    gets discovered.
+  - KEY TERM: association rule: a rule R with an itemset on the
+    left hand side and an itemset on the right hand side. The
+    left hand side, the set of products someone buys, implies
+    the right hand side, another set of products they also buy.
+  - Two conditions on the form. The two itemsets are disjoint,
+    so they have no items in common, and itemset 2 is non
+    empty, so the right hand side cannot be the empty set.
+  - KEY TERM: disjoint: sharing no member. An item cannot stand
+    on both sides of the same rule.
+  - Some simplified definitions allow only one item on the
+    right hand side. This class does not use that restriction.
+  - What the rule claims: if a transaction includes itemset 1,
+    then it also has itemset 2. The lecture's example forms are
+    A, B implies E and A implies B, C.
+  - Running story for the worked examples here: a bagel cart
+    outside the library keeps one line per customer, the items
+    in the bag and nothing else. Six items, shortened to
+    letters the way the lecture does: A = bagel, B = coffee,
+    C = cream cheese, D = orange juice, E = muffin, F = tea.
+    Ten receipts in the log. (added)
+  - Note 2 of this module found the frequent sets in that log
+    at min_sup = 3 of 10 receipts: singles A, B, C, D, E, pairs
+    AB, AC, BC, BD, BE, and the triple ABC (F is not frequent,
+    count 1). Those eleven sets feed every rule below. (added)
+
+2. GENERATING EVERY RULE FROM A FREQUENT SET
+  - Going from frequent itemsets to association rules is
+    relatively simple: generate all possible rules. Identify
+    every possible split point of the set into a left hand side
+    and a right hand side, with the caveat that the order of
+    the items inside a set does not matter.
+  - The lecture works the splits by shape. Two items on the
+    left and one on the right are trivially identified: pick
+    one item for the right, and everything that remains goes on
+    the left. Then one on the left and two on the right, built
+    the same way with the sides reversed.
+  - The empty left hand side is technically available. The
+    lecture raises it one time to show it does not make much
+    sense, then ignores it from that point on.
+  - A set of n items has 2^n - 2 splits: every item goes left
+    or right, and the two arrangements that put everything on
+    one side are thrown out. Three items give six rules. (added
+    explanation)
+  - On the cart, ABC is the only frequent triple. Its six
+    rules:
+
+      AB -> C    AC -> B    BC -> A
+      A -> BC    B -> AC    C -> AB
+
+3. SUPPORT AND CONFIDENCE OF A RULE
+  - With so many rules generated, two metrics decide which are
+    meaningful and which are not.
+  - KEY TERM: support of an association rule: for a rule saying
+    itemset I implies itemset J, the support of the union of
+    the two itemsets. Support count and support percentage
+    carry over from itemsets to rules unchanged.
+  - What rule support means: what fraction of transactions
+    involve both itemsets that form the rule, that is, whether
+    the rule has enough samples in the data set to merit
+    looking into the pattern. Something very rare is probably
+    not worth pursuing even when it is real.
+  - Every rule generated from the same frequent set has the
+    exact same support at the rule level, since wherever the
+    split falls the union of the two parts is the original set
+    again. If one qualifies on minimum support, all of them do,
+    so rules drawn from a frequent set never need that
+    computation at all.
+  - KEY TERM: confidence of an association rule: the support of
+    the entire rule, the left hand side joined with the right
+    hand side, over the support of just the left hand side. It
+    reads as the probability that the right hand side appears
+    given that the left hand side already appears.
+  - Confidence does vary across the rules from one frequent
+    set: the numerator stays fixed while the denominator, the
+    left hand side, changes with every split. (added
+    explanation)
+  - KEY TERM: minimum confidence (min_conf): the confidence a
+    rule has to reach to be kept, a threshold handed to the
+    algorithm the same way min_sup is. (added definition)
+  - Read together: support says whether a pattern is popular,
+    and confidence says whether there is a good conversion rate
+    in the data.
+
+4. THE SIX RULES FROM ABC, SCORED
+  - Thresholds for the cart: min_sup = 3 transactions = 3/10 =
+    30%, and min_conf = 70%. Both are given numbers, the way
+    the lecture describes someone handing them over. (added)
+  - ABC has support count 3, which is 30%, from receipts T1, T2
+    and T6. That is the rule support for all six splits and it
+    clears min_sup, so the support test is settled for the
+    whole batch before a single confidence gets computed.
+  - Confidence is sup(ABC) over the support of whatever sits on
+    the left:
+
+      two on the left, one on the right
+      AB -> C   3/5 = 60.0%   fail
+      AC -> B   3/4 = 75.0%   pass
+      BC -> A   3/4 = 75.0%   pass
+      one on the left, two on the right
+      A -> BC   3/6 = 50.0%   fail
+      B -> AC   3/8 = 37.5%   fail
+      C -> AB   3/6 = 50.0%   fail
+
+  - Two of the six survive at 70%: AC -> B, bagel and cream
+    cheese then coffee, and BC -> A, coffee and cream cheese
+    then bagel.
+  - The empty left hand side rule: {} -> ABC has confidence
+    sup(ABC) over 10 = 3/10 = 30%, since every receipt contains
+    the empty set. It states no condition, so it is never
+    useful.
+
+5. STRONG RULES ACROSS THE WHOLE CART
+  - KEY TERM: strong association rule: a rule with at least the
+    given minimum support and at least the given minimum
+    confidence. Identifying those is the stated goal of the a
+    priori algorithm.
+  - Rules come out of every frequent set of size 2 or more. On
+    the cart that is the five pairs at two rules each plus the
+    six from ABC, sixteen in all. The pair rules score like
+    this:
+
+      A -> B    5/6 = 83.3%   pass
+      B -> A    5/8 = 62.5%   fail
+      A -> C    4/6 = 66.7%   fail
+      C -> A    4/6 = 66.7%   fail
+      B -> C    4/8 = 50.0%   fail
+      C -> B    4/6 = 66.7%   fail
+      B -> D    3/8 = 37.5%   fail
+      D -> B    3/3 = 100%    pass
+      B -> E    3/8 = 37.5%   fail
+      E -> B    3/3 = 100%    pass
+
+  - The strong rules, the five that clear both thresholds,
+    ordered by confidence:
+
+      D -> B   100%    (sup 3)
+      E -> B   100%    (sup 3)
+      A -> B   83.3%   (sup 5)
+      AC -> B  75%     (sup 3)
+      BC -> A  75%     (sup 3)
+
+  - Reading the list: coffee sits in 8 of the 10 bags, so
+    almost anything implies coffee. The reverse rules fail
+    because coffee alone does not say what else was bought:
+    B -> D and B -> E land at 37.5%.
+
+6. THE A PRIORI ALGORITHM
+  - KEY TERM: a priori algorithm: the efficient procedure for
+    finding the patterns behind association rules, by first
+    identifying the frequent itemsets and only then generating
+    rules from them.
+  - The start is easy: find the size 1 itemsets, count the
+    frequency of every item, and keep the ones above the
+    threshold. The trick is the mechanism that moves from k to
+    k plus 1.
+  - That mechanism is the subset property from note 2: every
+    subset of a frequent itemset is itself frequent. Used in
+    reverse it prunes out sets with no chance. To move up a
+    level, all possible subsets of the bigger itemset have to
+    be frequent themselves, and one that is not vetoes the
+    bigger set.
+  - KEY TERM: candidate itemset: a size k set the join step
+    proposed and the prune step did not veto, still to be
+    counted against the data before anyone knows whether it is
+    frequent. (added definition)
+  - The pseudocode:
+
+      init: take the min_sup parameter and the min_conf
+        parameter, and generate all frequent itemsets of
+        size 1.
+      step 2a: generate the size k candidates using the size
+        k minus 1 sets. Join: combine the size k minus 1
+        itemsets to create size k sets. Prune: remove any
+        candidate that has a subset one level down which is
+        not in the frequent list.
+      step 2b: count. For the candidates that survived the
+        prune, go to the data set and count how many times
+        each size k itemset shows up.
+      step 2c: prune again on the actual counts, keeping the
+        sets that reach min_sup. The rest were only
+        candidates and never made the frequent list.
+      repeat: loop for the next size k.
+      stop: when step 2a generates no candidate itemsets.
+      then: generate the association rules by enumerating
+        the splits of the frequent itemsets, and using the
+        confidence metric keep those at or above min_conf.
+
+  - Going from size 1 to size 2 makes the prune concrete: build
+    all possible size 2 itemsets, then eliminate every one
+    containing an item that is not frequent.
+  - Checking a candidate of size k means checking every subset
+    of size k minus 1, and those are easy to find: hide one of
+    the letters and look at what remains, k of them per
+    candidate. The itemsets are kept in lexicographic order,
+    which improves the efficiency of doing this and is
+    generally good practice algorithmically.
+  - If any one subset is missing from the frequent list, the
+    candidate is dead. The lecture's phrase is ultimate veto
+    power: only one is enough to block the larger set from
+    becoming a candidate itemset.
+
+7. A PRIORI ON THE CART, START TO FINISH
+  - Init: min_sup = 3, min_conf = 70%, and every single item is
+    counted. A 6, B 8, C 6, D 3, E 3, F 1. L1 = {A, B, C, D,
+    E}, F dropping out at count 1.
+  - k = 2, step 2a join: pair up the members of L1. The
+    candidates C2 are the 10 pairs among A, B, C, D and E,
+    since 5 choose 2 = 10. The five pairs containing F are
+    never built: 15 pairs exist among six items, 10 become
+    candidates. The prune has nothing left to do here, since
+    every size 1 subset of every candidate is in L1 by
+    construction.
+  - Step 2b count: AB 5, AC 4, AD 2, AE 2, BC 4, BD 3, BE 3,
+    CD 1, CE 1, DE 0.
+  - Step 2c: L2 = {AB, AC, BC, BD, BE}. The counts eliminated
+    the candidates AD, AE, CD, CE and DE.
+  - k = 3, step 2a join: combine the pairs in L2 that share
+    their first item, that is k minus 2 = 1 item in common,
+    reading in lexicographic order:
+
+      AB + AC -> ABC
+      BC + BD -> BCD
+      BC + BE -> BCE
+      BD + BE -> BDE
+
+  - Prune, hiding one item at a time and looking for what
+    remains in L2:
+
+      ABC: hide A -> BC ok, hide B -> AC ok,
+           hide C -> AB ok.    candidate
+      BCD: hide B -> CD missing (count 1).    vetoed
+      BCE: hide B -> CE missing (count 1).    vetoed
+      BDE: hide B -> DE missing (count 0).    vetoed
+
+  - Three of the four proposals die on a lookup, so only ABC
+    reaches the receipts. Step 2b count: ABC = 3. Step 2c:
+    L3 = {ABC}.
+  - k = 4: L3 holds a single set, so there is nothing to join
+    it with, no C4 gets produced, and the loop stops.
+  - Frequent itemsets found: A, B, C, D, E, AB, AC, BC, BD, BE,
+    ABC. That is the same list a full enumeration gives, but
+    the algorithm counted 10 pairs and 1 triple against the
+    receipts instead of 15 pairs and 20 triples.
+  - Then the rule step on those sets, which is section 5,
+    ending at the five strong rules.
+
+8. WHY PRUNE: THE COMBINATORICS
+  - Pruning helps because these are all combinatorial
+    mechanisms, and the numbers get out of hand very quickly.
+  - The number of all possible size k itemsets out of n
+    products, when there are no repetitions and order does not
+    matter, is n choose k:
+
+      n choose k = n! / (k! (n - k)!)
+
+    where n! is the factorial of n: 5! is 5 times 4 times 3
+    times 2 times 1.
+  - On the cart's six items:
+
+      size 1:  6 choose 1 = 6
+      size 2:  6 choose 2 = 15
+      size 3:  6 choose 3 = 720 / (6 * 6) = 20
+
+  - F is not frequent, so every set containing F is vetoed
+    before it is ever counted, and only five items combine:
+
+      size 2:  5 choose 2 = 10   (15 drops to 10)
+      size 3:  5 choose 3 = 10   (20 drops to 10)
+
+  - The size 2 results narrow it again: once L2 is known, only
+    ABC needs counting. On six items that saving looks modest,
+    on thousands of products it decides whether the job
+    finishes. (added note)
+
+9. STORING THE PAIR COUNTS
+  - An implementation detail for real life: how support counts
+    get stored. The items are not held as strings, but mapped
+    to integers first.
+  - Three ways to hold the pair counts:
+      A plain matrix for the pair i j. The naive method, and
+        it stores every pair twice.
+      A triangular method, which does a little arithmetic on
+        the index so that double the data does not have to be
+        stored.
+      A triples approach, a hash table using the pair to be
+        counted as the key.
+  - On the cart's six items:
+      plain matrix: 6 * 6 = 36 cells, each pair stored twice,
+        plus a diagonal nobody needs.
+      triangular: each unordered pair once, 6 * 5 / 2 = 15
+        cells.
+      triples: only the pairs seen at least once, 10 nonzero
+        pairs at 3 numbers each (item, item, count) = 30
+        numbers.
+  - Which method wins depends on how many of the 15 pairs are
+    actually nonzero: triples pays nothing for pairs that never
+    occurred, so it wins on sparse data. (added explanation)
+
+10. REAL DATA BEYOND A FIXED PRODUCT LIST
+  - With real data there is normally no fixed notion of what a
+    product is. Usually there is a hierarchy: a particular
+    brand of low fat milk, or low fat milk as the product type,
+    or milk, or drinks, and the question is whether
+    associations at any of those levels are useful.
+  - Other things that make matters more complicated: sequences
+    over time, and patterns that change over time.
+
+11. KEY TAKEAWAYS
+  - A rule is a split of a frequent itemset: both sides
+    disjoint, right side non empty, every split enumerated,
+    2^n - 2 of them for n items.
+  - Support belongs to the set, not to the split. All six rules
+    out of ABC carry support 3, so rules built from frequent
+    sets never need their support checked.
+  - Confidence is where the split matters, since only the
+    denominator moves. The rarer the left hand side, the higher
+    it climbs: AC -> B passes at 75% while B -> AC fails at
+    37.5% off the same numerator.
+  - Strong means both thresholds at once. Sixteen rules on the
+    cart yield five strong ones, four of them ending in coffee,
+    which is in 8 of the 10 bags.
+  - A priori spends a lookup to avoid a scan: the join builds
+    candidates, the prune kills any missing a subset one level
+    down, and only the survivors get counted.
+  - The savings are combinatorial. Dropping one infrequent item
+    out of six cut the pairs to count from 15 to 10, and the
+    size 2 results cut the triples reaching the counting step
+    from 20 to 1.
+
+12. QUIZ-SAFE FACTS
+  - An association rule R has an itemset on the left hand side
+    implying an itemset on the right hand side.
+  - The two itemsets are disjoint, and itemset 2 is non empty.
+  - Some simplified definitions restrict itemset 2 to a single
+    item; this class does not use that restriction.
+  - The rule means that if a transaction includes itemset 1, it
+    also has itemset 2. The example forms given are A, B
+    implies E and A implies B, C.
+  - Rules are generated from a frequent set by identifying all
+    possible split points into a left hand side and a right
+    hand side, without regard to item order.
+  - The right hand side cannot be empty. The empty left hand
+    side is technically possible, is mentioned once to show it
+    is not useful, then ignored.
+  - The support of the rule I implies J is the support of the
+    union of the two itemsets, with a count form and a
+    percentage form.
+  - Rule support asks what fraction of transactions involve
+    both sides, that is, whether the rule has enough samples to
+    merit looking into the pattern.
+  - All rules from the same frequent set have the exact same
+    support at the rule level, because wherever the split falls
+    the union of the two parts is the original set. If one
+    qualifies on minimum support, all of them do.
+  - Confidence is the support of the union of both sides over
+    the support of the left hand side alone, read as the
+    probability that the right hand side appears given the left
+    hand side already appears.
+  - The lecture's table gives the rule A, B implies C a
+    confidence of support A, B, C over support A, B, which is
+    2 over 4, or 50%.
+  - From the lecture's frequent set A, B, E at a minimum
+    support of 2 and a minimum confidence of 50%: AB -> E is
+    2/4 or 50%, AE -> B is 2/2, BE -> A is 2/2 and E -> AB is
+    2/2, all four qualifying.
+  - From that same set A -> BE is 2/6, about 33%, and B -> AE
+    is 2/7, about 28%, both failing.
+  - The empty left hand side rule there has confidence 2/9,
+    since all nine transactions contain the empty set.
+  - Support figures out whether a pattern is popular,
+    confidence whether there is a good conversion rate in the
+    data.
+  - Strong association rules are the ones that have at least
+    the given minimum support and the given minimum confidence.
+  - A priori initialization: take the minimum support and
+    minimum confidence parameters and generate the frequent
+    itemsets of size 1.
+  - Step 2a generates the size k candidates from the size k
+    minus 1 sets: a join step, then a prune step that removes
+    any candidate with a subset below it that is not frequent.
+  - Going from size 1 to size 2, any size 2 itemset containing
+    an item that is not frequent is eliminated.
+  - Step 2b counts the survivors in the data set, and step 2c
+    keeps the ones that are actually frequent.
+  - The loop repeats until 2a generates no candidates. Then the
+    rules are generated and those at or above the minimum
+    confidence kept.
+  - The subsets of size k minus 1 are found by hiding one of
+    the letters at a time.
+  - The itemsets are written in lexicographic order to improve
+    efficiency, algorithmically as well.
+  - The lecture's example assumes five frequent size 3
+    itemsets: ABC, ABD, ACD, ACE and BCD.
+  - ABCD is a good candidate, because hiding each letter in
+    turn gives BCD, ACD, ABD and ABC, all present in the list.
+  - ACDE cannot be frequent: CDE does not appear in the list,
+    and ADE does not either, even though ACD and ACE both do.
+    One missing subset is enough, what the lecture calls
+    ultimate veto power.
+  - For a very small data set of seven products, the lecture
+    counts 7 size 1 itemsets, 21 size 2 and 35 size 3, with
+    7 choose 3 working out to 35.
+  - The number of all possible size k itemsets out of n
+    products, without repetitions and without regard to order,
+    is given by n choose k, which is n! / (k! (n - k)!), where
+    n! is the factorial of n.
+  - In the lecture's reduction, if D is not frequent every size
+    2 itemset containing D is vetoed, and with F and Z not
+    frequent either the 21 pairs drop to 6 that need counting.
+  - Support counts are not stored with strings; the items are
+    mapped to integers.
+  - Three storage approaches are named: a plain matrix for the
+    pair i j, the naive method, a triangular method that avoids
+    storing double the data, and a triples approach using a
+    hash table keyed by the pair to be counted.
+  - Real data normally has no fixed notion for the products.
+    Often there is a hierarchy: a particular brand of low fat
+    milk, low fat milk, milk, drinks, with associations
+    possible at any level.
+  - Sequences over time and patterns that change over time
+    complicate matters further.

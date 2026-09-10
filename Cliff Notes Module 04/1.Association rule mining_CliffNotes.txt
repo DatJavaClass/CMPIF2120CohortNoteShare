@@ -1,0 +1,134 @@
+1. WHAT ASSOCIATION RULE MINING IS
+  - KEY TERM: market basket data: a list of the items people
+    buy at the grocery store.
+  - KEY TERM: association rule mining: the technique that works
+    on market basket data to discover interesting and novel
+    patterns in it.
+  - KEY TERM: pattern: a combination of items that turns up
+    together across enough baskets to be worth acting on. The
+    lecture's bar is the word novel: not obvious, but usable.
+    (added definition)
+  - KEY TERM: correlation: two items bought together more
+    often than chance would suggest. The lecture uses it and
+    pattern for the same finding. (added definition)
+  - Retailers collect this data aggressively to get insights
+    about customers and use those insights to increase profits.
+  - Running story for the worked examples here: a bagel cart
+    outside the library keeps one line per customer, the items
+    in the bag and nothing else. Ten such lines are market
+    basket data. (added)
+
+2. THE DIAPERS AND BEER STORY
+  - Back in the mid 90s, when association rule mining became
+    popular, a strong correlation was discovered between people
+    buying diapers and beer on the same grocery trip, usually
+    between 5 and 7 p.m. on Fridays.
+  - Several news stories and Wikipedia entries cover it, and
+    the original article is below the video. In the article,
+    people analyzing data at some stores found that on Friday
+    nights those who came in to buy diapers also often bought
+    beer.
+  - The purchases were attributed to new fathers who do not
+    often go out on Saturday nights: stuck home with babies
+    over the weekend, maybe you drink a few beers at home
+    instead of going out. That reason was laid over the pattern
+    afterward, since the data gave the pairing and the hours,
+    not the why. (added last sentence)
+
+3. WHY THE CORRELATION IS INVISIBLE WITHOUT DATA
+  - The important thing to understand is that the correlation
+    is not easily observable without data. It is not as if
+    every Friday night you could go to a store and see carts
+    loaded up with diapers and beer.
+  - Instead, association rule mining looks for correlations
+    between items even if it is a low percentage of the overall
+    customer population.
+
+4. ACTING ON A SMALL PATTERN
+  - The store can use that knowledge to adjust other things:
+    putting chips between the diapers and the beer, or offering
+    coupons for chips with the purchase of beer, to encourage
+    other spending.
+  - While 1% of all customers is a small number, influencing 1%
+    of a huge number of customers will cover the salary of the
+    data scientists who conducted the analysis.
+
+5. GENERALIZING THE TYPES OF PRODUCTS
+  - One complication with real life settings is that we often
+    need to generalize the types of products to get more
+    meaningful patterns.
+  - There may be no pattern with organic 2% milk of a specific
+    brand, but there can be one with milk in general: that
+    people buy milk and cereal together. Focus on specific
+    brands and such a pattern may not be popular enough, so it
+    could stay undetected. The mechanism is division: one real
+    pattern split across a dozen brands becomes a dozen
+    patterns, none big enough to clear the threshold. (added
+    explanation)
+
+6. LOYALTY CARDS AS DATA COLLECTION
+  - Every supermarket now has a loyalty card. The cards were
+    once a novelty; they are mainstream nowadays.
+  - The main reason they exist is to gather data for machine
+    learning, association mining being the lecture's example.
+    The card links you or your household to a specific ID
+    number that can be used for data mining and that informs
+    business decision making.
+  - At first you could get the store specials without a card.
+    Nowadays it is necessary for any special pricing, to force
+    people into getting and using a card and to increase the
+    quality of the resulting data mining.
+
+7. KEY TAKEAWAYS
+  - Association rule mining runs on market basket data and
+    hunts for patterns that are novel rather than obvious.
+  - The lesson of diapers and beer is that the pattern was
+    invisible from the sales floor. Only the data showed it.
+  - A pattern covering few customers still pays, because the
+    payoff scales with the size of the customer base, and it is
+    acted on by placing or pricing a third product.
+  - Product descriptions that are too specific hide patterns,
+    and loyalty cards exist to collect the data in the first
+    place.
+
+8. QUIZ-SAFE FACTS
+  - Association rule mining deals with market basket data, a
+    list of items people buy at the grocery store.
+  - Retailers collect that data aggressively to get insights
+    about customers and increase profits.
+  - The goal is to discover interesting and novel patterns,
+    something not super obvious but usable by the company.
+  - Association rule mining became popular in the mid 90s.
+  - The story of the finding has reached the level of urban
+    legend but is real.
+  - A strong correlation was discovered between people buying
+    diapers and beer on the same grocery trip, usually between
+    5 and 7 p.m. on Fridays.
+  - The diaper purchases were attributed to new fathers who do
+    not often go out on Saturday nights.
+  - The correlation is not easily observable without data: you
+    could not see carts loaded up with diapers and beer on a
+    Friday night.
+  - Association rule mining looks for correlations between
+    items even if it is a low percentage of the overall
+    customer population.
+  - The store can use that knowledge to adjust other things,
+    for example putting chips between the diapers and the
+    beer, or offering coupons for chips with the purchase of
+    beer, to encourage other spending.
+  - Influencing 1% of a huge number of customers covers the
+    salary of the data scientists who conducted the analysis.
+  - Real settings often require generalizing the types of
+    products to get more meaningful patterns.
+  - There may be no pattern with organic 2% milk of a specific
+    brand, but there can be one with milk in general, such as
+    milk and cereal bought together.
+  - At brand level such a pattern may not be popular enough, so
+    it stays undetected.
+  - The main reason loyalty cards exist is to gather data for
+    machine learning, association mining given as the example.
+  - The card links you or your household to a specific ID
+    number used for data mining and business decision making.
+  - Specials once did not require a loyalty card; requiring it
+    for special pricing forces people to get and use one and
+    increases the quality of the resulting data mining.

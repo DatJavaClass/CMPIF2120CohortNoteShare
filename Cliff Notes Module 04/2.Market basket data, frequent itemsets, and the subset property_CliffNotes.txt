@@ -1,0 +1,332 @@
+1. WHAT MARKET BASKET DATA IS
+  - Association rule mining runs on market basket data, which
+    the lecture calls a subset of what a grocery store
+    typically records when you check out.
+  - The full receipt is bigger: customer ID, date and time, the
+    big list of things you bought, the quantities, the prices,
+    and the credit card information for how you paid. Market
+    basket data keeps mostly one piece of that, the types of
+    products bought, and that is the input to association rule
+    mining.
+  - KEY TERM: market basket data: the types of products bought
+    together, recorded one basket or cart per transaction, with
+    a transaction ID identifying each one. One transaction per
+    row in the lecture's layout.
+  - The expectation behind it: nobody buys the whole store, so
+    the number of items in one transaction is much, much
+    smaller than the total number of items the store carries.
+  - Full product names would take too much of a slide, so the
+    analysis uses alphabet letters as shortcuts: A, B, C, D, E,
+    F and further if needed. Each maps to some product in real
+    life, so A stands for something like bread.
+  - Two habits go with the letters. Items are listed in
+    alphabetical order, which is not a big deal but makes the
+    data faster to parse by eye. And the data is often
+    organized in a more columnar format, typically with binary
+    flags under each item, which helps with counting.
+  - KEY TERM: binary flag layout: one column per item, one row
+    per transaction, 1 where the item was in that basket and 0
+    where it was not. (added definition)
+  - Running story for the worked examples here: a bagel cart
+    parked outside the library keeps one line per customer, the
+    items in the bag and nothing else. (added)
+  - Six items, lettered the way the lecture letters products:
+
+      A = bagel, B = coffee, C = cream cheese,
+      D = orange juice, E = muffin, F = tea
+
+  - Ten receipts, items alphabetical inside each:
+
+      T1   A, B, C
+      T2   A, B, C, E
+      T3   B, D
+      T4   A, C
+      T5   B, E
+      T6   A, B, C, D
+      T7   C, F
+      T8   A, B, E
+      T9   B, C
+      T10  A, B, D
+
+  - The same ten receipts in the columnar binary flag layout:
+
+      TID   A  B  C  D  E  F
+      T1    1  1  1  0  0  0
+      T2    1  1  1  0  1  0
+      T3    0  1  0  1  0  0
+      T4    1  0  1  0  0  0
+      T5    0  1  0  0  1  0
+      T6    1  1  1  1  0  0
+      T7    0  0  1  0  0  1
+      T8    1  1  0  0  1  0
+      T9    0  1  1  0  0  0
+      T10   1  1  0  1  0  0
+
+  - Same data both ways. A row read across is one basket; a
+    column summed down is one item's count, which is what the
+    flag layout is for. (added explanation)
+
+2. ITEM, ITEMSET, TRANSACTION
+  - KEY TERM: item: one of the products that was bought. The
+    letter A is an item, standing in for a real product.
+  - KEY TERM: itemset: a subset of all possible items, written
+    L in the lecture, and also readable as a subset of the
+    items bought in one transaction. The written form is
+    L = {A, B}.
+  - Order is not important in sets and subsets. Items are
+    listed alphabetically only so that sets are easy to
+    compare, and only one of the possible permutations is ever
+    considered. {A, B} and {B, A} are not two things.
+  - KEY TERM: transaction: an itemset along with a transaction
+    ID.
+  - On the cart, {A, C} is an itemset and T4 is a transaction:
+    that itemset with its ID. A bagel and cream cheese, no
+    coffee. (added)
+  - KEY TERM: subset: a set whose every member is also a member
+    of the larger set. {A, B} is a subset of {A, B, C}. (added
+    definition)
+  - KEY TERM: superset: the same relation read the other way.
+    {A, B, C} is a superset of {A, B}. A size 1 itemset holds
+    one item, a size 2 itemset holds two, and so on. (added
+    definition)
+
+3. SUPPORT COUNT AND SUPPORT PERCENTAGE
+  - KEY TERM: support count of an itemset: the number of
+    transactions that contain that itemset, that is, how many
+    times that combination of products showed up on people's
+    purchase receipts.
+  - Containment is the test, not exclusivity. Counting A does
+    not care whether A was purchased by itself or with other
+    products; any transaction holding A counts.
+  - KEY TERM: support percentage: the support count over the
+    total count of transactions in the market basket data.
+  - Reporting one or the other is a preference; the percentage
+    makes counts comparable across datasets of different sizes.
+    (added last clause)
+
+4. COUNTING THE SINGLE ITEMS ON THE CART
+  - Ten receipts, so every percentage below is out of 10.
+  - Size 1 support counts, with the receipts behind them:
+
+      A  6  60%  T1, T2, T4, T6, T8, T10
+      B  8  80%  T1, T2, T3, T5, T6, T8, T9, T10
+      C  6  60%  T1, T2, T4, T6, T7, T9
+      D  3  30%  T3, T6, T10
+      E  3  30%  T2, T5, T8
+      F  1  10%  T7
+
+  - Each of those is a column sum in the flag table: sum the A
+    column and you get 6, the support count of {A}.
+  - Coffee, B, is in 8 of the 10 bags; tea, F, is in one.
+
+5. COUNTING PAIRS AND BIGGER SETS
+  - A pair is counted the same way: walk the transactions and
+    tally the ones containing both letters.
+  - AB one receipt at a time. T1 and T2 hold both. T3, T5 and
+    T9 are B without A, T4 is A without B, and T7 has neither.
+    T6, T8 and T10 hold both. Five receipts hold the pair, so
+    AB has a support count of 5, or 50%.
+  - All 15 pairs:
+
+      AB  5  50%  T1, T2, T6, T8, T10
+      AC  4  40%  T1, T2, T4, T6
+      AD  2  20%  T6, T10
+      AE  2  20%  T2, T8
+      AF  0
+      BC  4  40%  T1, T2, T6, T9
+      BD  3  30%  T3, T6, T10
+      BE  3  30%  T2, T5, T8
+      BF  0
+      CD  1  10%  T6
+      CE  1  10%  T2
+      CF  1  10%  T7
+      DE  0
+      DF  0
+      EF  0
+
+  - Zeros carry information. AF, BF, DE, DF and EF are
+    combinations nobody bought: orange juice and a muffin never
+    share a bag, and tea only turns up with cream cheese.
+  - Size 3 itemsets, the nonzero ones out of 20 possible:
+
+      ABC  3  30%  T1, T2, T6
+      ABD  2  20%  T6, T10
+      ABE  2  20%  T2, T8
+      ACD  1  T6
+      ACE  1  T2
+      BCD  1  T6
+      BCE  1  T2
+
+  - The other 13 size 3 sets have a count of 0. Size 4 is
+    nearly empty: ABCD once, on T6, ABCE once on T2, everything
+    else 0.
+  - Counts fall as sets grow and never rise, since adding an
+    item only makes the set harder for one basket to contain.
+    (added explanation)
+
+6. MINIMUM SUPPORT AND THE WORD FREQUENT
+  - KEY TERM: minimum support, min_sup: the threshold a support
+    count has to reach for its itemset to be called frequent.
+  - KEY TERM: frequent itemset: an itemset whose support count
+    reaches min_sup. Anything below it is not frequent, and the
+    analysis stops caring about it. (added last clause)
+  - Where the threshold comes from: magic, in the lecture's
+    word. Someone always gave it to us in this class. In real
+    life it comes from previous people who did similar analyses
+    at the same company, or from a little trial and error with
+    different thresholds.
+  - Course thresholds and datasets are small. Real datasets are
+    much, much, much bigger.
+  - On the cart, someone hands over min_sup = 3 transactions,
+    which is 3/10, or 30%. (added)
+  - Frequent itemsets on the cart at min_sup = 3:
+
+      size 1: A, B, C, D, E
+      size 2: AB, AC, BC, BD, BE
+      size 3: ABC
+      size 4: none
+
+  - F is out at size 1 with a count of 1, and no pair or
+    triple holding it reaches 3 either.
+  - AD and AE sit at 2 and miss by one basket. BD and BE sit
+    exactly at 3 and are in: the threshold is met, not beaten.
+  - Move the threshold and the list moves with it. It is a dial
+    on how much of the data you are willing to call a pattern.
+    (added)
+
+7. THE SUBSET PROPERTY
+  - KEY TERM: subset property: every subset of a frequent
+    itemset is itself frequent. If an itemset is frequent, any
+    way you cut it into smaller pieces, those pieces are
+    frequent too.
+  - The lecture's argument on a pair: if AB is frequent, then
+    every time A and B show up, both A and B show up. AB cannot
+    show up at least a certain number of times while A alone or
+    B alone shows up fewer times than the combination does.
+  - In counts: a subset's support is at least its superset's,
+    because every transaction holding the whole set holds each
+    part of it. Dropping an item can only add transactions to a
+    count, never take any away. (added explanation)
+  - On the cart, ABC is frequent with a count of 3. Its size 2
+    subsets are AB 5, AC 4 and BC 4; its size 1 subsets are A
+    6, B 8 and C 6. All six are at least 3, so all six are
+    frequent.
+  - T1, T2 and T6 are the receipts holding all three, and each
+    sits inside every one of those smaller counts, with other
+    baskets on top. Hence the direction of the numbers: 3 for
+    the triple, 4 and 5 for the pairs, 6 and 8 for the singles.
+    (added note)
+  - What works from size 3 down to size 2 works from size 2
+    down to size 1, and at bigger sizes as well. One property,
+    not a rule per size.
+  - Almost all association rule algorithms are based on it,
+    which is why the lecture calls it crucial to identifying
+    association rules efficiently.
+  - The efficiency is in reading the property backwards. If a
+    set is not frequent, no superset of it can be frequent, so
+    supersets get thrown out before anyone counts them against
+    the receipts. F has a count of 1, so AF, BF, CF, DF, EF and
+    everything larger holding F never need counting. (added
+    explanation)
+
+8. THE PROPERTY RUNS ONE WAY ONLY
+  - The converse is false. Frequent subsets do not make the
+    superset frequent, and that is the easiest place to go
+    wrong on this. (added)
+  - ABD shows it. The three pairs inside it are AB 5, BD 3 and
+    AD 2. Two of them are frequent at min_sup = 3, while ABD
+    itself has a count of 2, below the threshold.
+  - AD is not frequent either, so in practice ABD would have
+    been dropped before anyone counted it. Even so, a set whose
+    subsets all clear the threshold still has to be counted:
+    frequent subsets are a necessary condition, never a
+    sufficient one. (added explanation)
+
+9. KEY TAKEAWAYS
+  - Market basket data drops most of the receipt and keeps the
+    types of products bought per transaction, with an ID.
+    Letters replace names, and a binary flag table replaces the
+    item lists when it is time to count.
+  - An item is one product, an itemset is a set of items with
+    order unimportant, and a transaction is an itemset plus its
+    ID.
+  - Support count is how many transactions contain the itemset,
+    by containment rather than exact match. Support percentage
+    is that count over the number of transactions.
+  - Frequent means the support count reaches min_sup, and
+    min_sup is handed to you rather than derived.
+  - At min_sup = 3 the cart has five frequent singles, five
+    frequent pairs, and one frequent triple, ABC, whose subsets
+    AB 5, AC 4, BC 4, A 6, B 8 and C 6 are all frequent.
+  - The converse fails: ABD holds two frequent pairs and is not
+    frequent itself, so a superset has to earn its own count.
+  - Almost all association rule algorithms rest on the subset
+    property, and the saving is in its backward form: not
+    frequent means every superset can be discarded unread.
+
+10. QUIZ-SAFE FACTS
+  - Market basket data is a subset of what a grocery store
+    typically records at checkout, which also includes customer
+    ID, date and time, the list of items, quantities, prices
+    and credit card information.
+  - Out of all that data, market basket data is mostly the
+    types of products bought, and that is the input used for
+    association rule mining.
+  - There is normally a transaction ID, one per row in the
+    lecture's example, identifying the different transactions.
+  - The number of items in a transaction is much smaller than
+    the total number of items available at the store, because
+    nobody buys the whole store.
+  - Alphabet letters A, B, C, D, E, F and onward stand in for
+    products, because full names would take too much of a
+    slide.
+  - Products are sometimes listed in alphabetical order, which
+    helps human parsing, and the data is often organized in a
+    columnar format with binary flags under each item, which
+    helps with counting.
+  - An item is one of the products that was bought.
+  - An itemset, written L, is a subset of all possible items,
+    for example L = {A, B}. Order is not important and only one
+    of the possible permutations is considered.
+  - A transaction is an itemset along with a transaction ID.
+  - The support count of an itemset is the number of
+    transactions that contain that itemset, whether it was
+    bought alone or with other products.
+  - The support percentage is the support count over the total
+    count of transactions in the market basket data.
+  - An itemset is called frequent if its support count reaches
+    the minimum support threshold min_sup.
+  - The threshold is given rather than computed. In real life
+    it comes from previous people who did similar analyses at
+    the same company, or from trial and error with different
+    thresholds.
+  - Class thresholds and datasets are small; real datasets are
+    much bigger.
+  - The lecture's table has nine transactions, with size 1
+    support counts A 6, B 7, C 6, D 2 and E 2. B's support
+    percentage is 7 over 9 and C's is 6 over 9.
+  - Its size 2 counts include AB 4, BC 4, BD 2 and CD 0, and
+    the size 3 set ABE has a count of 2.
+  - CD is a combination that does not exist in that data. The
+    lecture reads C as cereal and D as sugar, and most cereal
+    contains sugar, so nobody bought them together.
+  - With a minimum support of 4 on that table, the frequent
+    size 1 sets are A, B and C at 6, 7 and 6, and the frequent
+    size 2 sets are AB, BC and AC, all at 4. Everything else
+    falls below 4 and is not frequent.
+  - The size 3 sets the lecture lists are the ones containing
+    A: ABC, ABD, ABE, ACD, ACE and ADE, with support counts
+    varying between 0, 1 and 2.
+  - With a minimum support of 2 on that table, every size 1 set
+    is frequent, the frequent size 2 sets are AB, BC, AC, BD,
+    BE and AE, and the frequent size 3 sets are ABC and ABE.
+  - The subset property: every subset of a frequent itemset is
+    itself frequent.
+  - The justification given: if AB is frequent, every time A
+    and B show up both A and B show up, so neither can show up
+    fewer times than the combination does.
+  - The property holds from size 3 down to size 2 and size 1,
+    and at bigger sizes as well.
+  - Almost all association rule algorithms are based on the
+    subset property, which the lecture calls crucial to
+    identifying association rules efficiently.
