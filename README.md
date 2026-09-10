@@ -24,6 +24,8 @@ Bare metal calculators, one per method, that run in a terminal and print every s
 - `Programs/Module 02/` (PCA from a data set or straight from a covariance matrix: scaling, the covariance matrix, eigenvectors and eigenvalues, the scree table with the elbow and a variance target, loadings, and the projection. Plus the vector helpers from the linear algebra primer)
 - `Programs/Module 03/` (k-means with every initial centroid rule the lecture named, WCSS, silhouette, and the elbow sweep. DBSCAN in the same file: core, border, and noise points, cluster growth, the k-distance table for picking eps, and an eps sweep. Hierarchical clustering bottom up with a dendrogram and top down by splitting the widest cluster)
 
+Every calculator also has a `_GenUse` twin in the same folder. Same step by step printout, no data list to edit: point it at a csv with `-d` (or `-` for stdin, or rows typed inline), name the columns you want, and it runs on whatever you give it, any number of rows or features. A few knobs rode along, weighted kNN, leave one out, k-means restarts, ward linkage, a height cut on the dendrogram, and a `--brief` switch for when the data is too big to watch every step. Still shows its work.
+
 The Module 01 and Module 03 files share helpers with their folder mates, so keep each folder together.
 
 ## Contributors
