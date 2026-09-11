@@ -1,3 +1,5 @@
+<p align="center"><img width="511" height="768" alt="PatchLad" src="https://github.com/user-attachments/assets/70a8d516-5a21-4829-a594-b7b6222028ae" /></p>
+
 # PyPrime Environment
 
 Python installs are where semesters go to die. One person has Python 3.9, one has three copies and none of them can see pandas. PyPrime ends that. It is the class Python setup in a box: Python 3.14, pandas, NumPy, scikit learn, XGBoost, matplotlib, seaborn and JupyterLab, the same versions on every machine. You download one file, double click it, and JupyterLab opens in your browser.
@@ -37,4 +39,4 @@ The other files here are the recipe. `Dockerfile` and `compose.yaml` tell Docker
 
 Already have conda? Skip the box entirely. Download `environment.yml`, run `conda env create -f environment.yml`, then `conda activate PyPrimePortable`. Same packages, same versions.
 
-I am not a Docker expert, nor will I ever claim to be. This was assembled with AI help, then run start to finish on my own machine before it went up here. If it breaks on yours, tell me which step and we will fix it.
+I am not a Docker expert, nor will I ever claim to be. This was streamlined and tested on several virtual systems with AI help, then run start to finish on my own machine before it went up here. If it breaks on yours, tell me which step and by PatchLad I'll fix it!
