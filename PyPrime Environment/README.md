@@ -2,7 +2,7 @@
 
 # PyPrime Environment
 
-Python installs are where semesters go to die. One person has Python 3.9, one has three copies and none of them can see pandas. PyPrime ends that. It is the class Python setup in a box: Python 3.14, pandas, NumPy, scikit learn, XGBoost, matplotlib, seaborn and JupyterLab, the same versions on every machine. You download one file, double click it, and JupyterLab opens in your browser.
+Python installs are where semesters go to die. One person has Python 3.9, one has three copies and none of them can see pandas. PyPrime ends that. It is the class Python setup in a box: Plus so much more... It's something amazing called [XGBoost](https://xgboost.readthedocs.io/)! You download one file, double click it, and JupyterLab opens in your browser. Then? Go Ham!
 
 ## What Docker is, in one paragraph
 
