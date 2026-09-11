@@ -1,3 +1,4 @@
+name: pyprimeportable
 services:
   pyprime:
     build: .
