@@ -30,6 +30,12 @@ Every calculator also has a `_GenUse` twin in the same folder. Same step by step
 
 The Module 01, Module 03 and Module 04 files share helpers with their folder mates, so keep each folder together.
 
+## PyPrime Environment
+
+The class Python setup in a box. Download one file, let Docker Desktop do the rest, and JupyterLab opens in your browser with pandas, scikit learn, XGBoost and friends already installed, the same versions for everyone.
+
+- `PyPrime Environment/` (the start file for Windows and Mac, the Docker recipe, and a README that walks through setup as if you have never heard of Docker)
+
 ## Contributors
 
 - **DatJavaClass (Victor S)**, author and director. Conceived these notes, established their format and structure, directed their creation, and fact-checked, edited, and quality-controlled every one, with assistance by Claude. Some material may have been derived from assigned material, but has not been copied verbatim. For source materials please contact CMPINF-2120 Faculty and Assistants.
